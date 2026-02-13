@@ -75,7 +75,7 @@ export async function createAdminUserWithOrganization(
       update: {},
       create: {
         name: "fluxy",
-        url: "https://fluxe-adk-fluxy.egnehl.easypanel.host", // pode vir de env
+        url: "https://fluxe-sdr.egnehl.easypanel.host", // pode vir de env
       },
     })
 
