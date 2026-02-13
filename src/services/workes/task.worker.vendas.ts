@@ -9,7 +9,6 @@ import { updateContactObejtivoLead } from "../../infra/dataBase/contacts";
 export async function startTaskWorkerVendas() {
   const channel = getConectionTheChannel()
   const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "gamefic";
-  const phoneNumberIdWaba = process.env.PHONE_NUMBER_ID ?? "1021940604341981";
   const queue = `task.${nomeFila}.vendas.create`
   const dlq = `task.${nomeFila}.vendas.dlq`
 
@@ -40,7 +39,7 @@ export async function startTaskWorkerVendas() {
       const dadosLead: LeadRegister = bodyVendas.dados;
       if (bodyVendas.name_template == "lead_register") {
         bodyPayload = {
-          "phone_number_id": phoneNumberIdWaba,
+          "phone_number_id": bodyVendas.phoneNumberId,
           "payload": {
             messaging_product: "whatsapp",
             to: dadosLead.telefoneAgente,
@@ -93,7 +92,7 @@ export async function startTaskWorkerVendas() {
         const dadosLead: LeadRegister = bodyVendas.dados;
 
         bodyPayload = {
-          "phone_number_id": phoneNumberIdWaba,
+          "phone_number_id": bodyVendas.phoneNumberId,
           "payload": {
             messaging_product: "whatsapp",
             to: bodyVendas.dados.telefone,

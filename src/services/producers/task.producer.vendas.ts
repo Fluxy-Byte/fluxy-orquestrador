@@ -1,9 +1,6 @@
 
 import { getConectionTheChannel } from '../../infra/rabbitMQ/conection';
 import type { Task } from '../../adapters/interfaces/BodySendToCampaing';
-// Onde a API recebe tarefas
-
-
 
 export async function createTaskVendas(task: Task) {
     try {
