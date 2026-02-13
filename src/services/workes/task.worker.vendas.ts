@@ -95,7 +95,7 @@ export async function startTaskWorkerVendas() {
           "phone_number_id": bodyVendas.phoneNumberId,
           "payload": {
             messaging_product: "whatsapp",
-            to: bodyVendas.dados.telefone,
+            to: dadosLead.telefoneAgente,
             type: "template",
 
             template: {
