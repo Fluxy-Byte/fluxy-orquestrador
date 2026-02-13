@@ -8,7 +8,7 @@ import { updateContactObejtivoLead } from "../../infra/dataBase/contacts";
 
 export async function startTaskWorkerVendas() {
   const channel = getConectionTheChannel()
-  const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "gamefic";
+  const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "fluxy";
   const queue = `task.${nomeFila}.vendas.create`
   const dlq = `task.${nomeFila}.vendas.dlq`
 

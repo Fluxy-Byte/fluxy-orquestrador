@@ -18,7 +18,7 @@ interface Numbers {
 
 export async function startTaskWorkerCampaign() {
   const channel = getConectionTheChannel()
-  const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "gamefic";
+  const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "fluxy";
   const queue = `task.${nomeFila}.campaign.create`
   const dlq = `task.${nomeFila}.campaign.dlq`
 

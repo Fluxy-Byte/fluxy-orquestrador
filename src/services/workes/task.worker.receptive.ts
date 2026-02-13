@@ -4,7 +4,7 @@ import type { MetaWebhook } from '../interfaces/MetaWebhook';
 
 export async function startTaskWorkerReceptive() {
     const channel = getConectionTheChannel()
-    const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "gamefic";
+    const nomeFila = process.env.NOME_FILA_RABBITMQ ?? "fluxy";
     const queue = `task.${nomeFila}.receptive.create`
     const dlq = `task.${nomeFila}.receptive.dlq`
 
