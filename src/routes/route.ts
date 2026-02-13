@@ -4,7 +4,7 @@ import { createTaskCampaign } from "../services/producers/task.producer.campaign
 import { createTaskVendas } from "../services/producers/task.producer.vendas"// Criar task para campanhas
 // import { buscarTodasAsMensagens } from "../config/database/entities/mensagems";
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
-import { getAllContacts } from "../infra/dataBase/contacts";
+import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 
 const routes = express();
 
@@ -105,6 +105,44 @@ routes.post("/api/v1/vendas", async (req: any, res: any) => {
         res.status(500).json({
             status: false,
             message: "Erro ao inserir na fila de disparo.",
+            error: JSON.stringify(e)
+        });
+    }
+})
+
+// Coletar historico de conversação
+
+routes.post("/api/v1/contact", async (req, res) => {
+    try {
+        const { phone, name, metadado, context } = req.body();
+        const mensagens = await contatoConexaoSdr(phone, name, metadado, context);
+        res.status(200).json({
+            status: true,
+            message: "Contato criado na base",
+            data: mensagens
+        });
+    } catch (e: any) {
+        res.status(500).json({
+            status: false,
+            message: "Erro ao criar contato",
+            error: JSON.stringify(e)
+        });
+    }
+})
+
+routes.put("/api/v1/contact", async (req, res) => {
+    try {
+        const { phone, name, metadado } = req.body();
+        const mensagens = await updateNameLeadConexaoSdr(phone, name, metadado);
+        res.status(200).json({
+            status: true,
+            message: "Contatos atualizado na base",
+            data: mensagens
+        });
+    } catch (e: any) {
+        res.status(500).json({
+            status: false,
+            message: "Erro ao atualizar contato",
             error: JSON.stringify(e)
         });
     }
