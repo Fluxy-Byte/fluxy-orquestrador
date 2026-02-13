@@ -1,5 +1,5 @@
-import axios, { AxiosError } from "axios";
-import { AdkInvocation } from "../interfaces/AdkInvocation";
+import axios from "axios";
+import { SdrInterface } from "../interfaces/sdrInterface";
 import { Metadata } from '../../services/interfaces/MetaWebhook';
 import { waba } from '../../infra/dataBase/waba';
 
@@ -13,8 +13,7 @@ export async function getAnwser(
   metadados: Metadata
 ): Promise<string> {
   try {
-    // 1️⃣ Cria ou reaproveita sessão
-    const resultSession = await createSession(phone, metadados);
+    const resultSession = await createSession(phone, metadados); // Criando sessão de usuário no ADK (ou reutilizando se já existir)
 
     const urlAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
 
@@ -24,11 +23,10 @@ export async function getAnwser(
         resultSession.data?.error?.includes("Session already exists"));
 
     if (!sessionOk) {
-      console.error("Erro ao criar sessão:", resultSession);
+      console.log(`\n\n💥 Erro ao criar sessão do usuario: ${JSON.stringify(resultSession)}`);
       return MENSAGM_DEFAULT;
     }
 
-    // 2️⃣ Envia mensagem para o agente
     const response = await axios.post(
       `${urlAgente}/run`,
       {
@@ -57,8 +55,7 @@ export async function getAnwser(
       return MENSAGM_DEFAULT;
     }
 
-    // 3️⃣ Processa resposta
-    const body: AdkInvocation[] = response.data;
+    const body: SdrInterface[] = response.data;
 
     const resposta = body.find((b) =>
       b.content.parts.some((p) => "text" in p)

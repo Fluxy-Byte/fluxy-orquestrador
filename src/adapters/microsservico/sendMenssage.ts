@@ -3,7 +3,8 @@ import axios from "axios";
 export const sendMenssagem = async (props: { mensagem: string, idMensagem: string, numeroDoContato: string, phone_number_id: string }) => {
     try {
 
-        console.log(`Mensagem gerada pela IA: ${props.mensagem}`)
+        console.log(`\n\n📢 Enviando mensagem para microserviço: ${props.mensagem} para o numero ${props.numeroDoContato}\n\n`)
+
         const url = process.env.URL_MICROSERVICE ?? "https://gamefic-growth.egnehl.easypanel.host";
         const responseSend = await axios.post(`${url}/send-message`,
             {
