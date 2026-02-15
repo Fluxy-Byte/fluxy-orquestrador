@@ -179,3 +179,11 @@ enum Role {
   MEMBER
   ADMIN
 }
+
+model Rdstation {
+  id        Int    @id
+  access_token String
+  token_type String
+  expires_in Int
+  refresh_token String @unique
+}

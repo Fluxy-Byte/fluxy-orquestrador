@@ -5,6 +5,7 @@ import { createTaskVendas } from "../services/producers/task.producer.vendas"// 
 // import { buscarTodasAsMensagens } from "../config/database/entities/mensagems";
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
+import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
 
 const routes = express();
 
@@ -145,6 +146,57 @@ routes.put("/api/v1/contact", async (req, res) => {
             message: "Erro ao atualizar contato",
             error: JSON.stringify(e)
         });
+    }
+})
+
+routes.get("/api/v1/rdcrm", async (req, res) => {
+    try {
+        const result = await rdStationGet()
+
+        if (!result.status) {
+            return res.status(500).json({
+                status: false,
+                data: null,
+            })
+        }
+
+        return res.status(200).json({
+            status: true,
+            data: result.dados,
+        })
+    } catch (e) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            data: null,
+        })
+    }
+})
+
+
+routes.post("/api/v1/rdcrm", async (req, res) => {
+    try {
+        const body = req.body
+
+        const result = await rdStationPost(body)
+
+        if (!result.status) {
+            return res.status(500).json({
+                status: false,
+                data: null,
+            })
+        }
+
+        return res.status(200).json({
+            status: true,
+            data: result.dados,
+        })
+    } catch (e) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            data: null,
+        })
     }
 })
 
