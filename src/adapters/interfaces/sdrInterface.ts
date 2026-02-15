@@ -2,7 +2,7 @@
 // Tipos principais
 // =====================
 
-export interface AdkInvocation {
+export interface SdrInterface {
     invocationId: string
     author: string
     id: string
