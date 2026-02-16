@@ -22,9 +22,8 @@ export async function getAnwser(
       (resultSession.status === 400 &&
         resultSession.data?.error?.includes("Session already exists"));
 
-    console.log(sessionOk)
 
-    if (!sessionOk) {
+    if (sessionOk == false) {
       console.log(`\n\n💥 Erro ao criar sessão do usuario: ${JSON.stringify(resultSession)}`);
       return MENSAGM_DEFAULT;
     }
