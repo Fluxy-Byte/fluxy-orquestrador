@@ -112,10 +112,10 @@ routes.post("/api/v1/vendas", async (req: any, res: any) => {
     }
 })
 
-// Coletar historico de conversação
 routes.post("/api/v1/contact", async (req, res) => {
     try {
-        const { phone, name, metadado, context } = req.body();
+        console.log("Chegou")
+        const { phone, name, metadado, context } = req.body;
         const mensagens = await contatoConexaoSdr(phone, name, metadado, context);
         res.status(200).json({
             status: true,
@@ -133,7 +133,7 @@ routes.post("/api/v1/contact", async (req, res) => {
 
 routes.put("/api/v1/contact", async (req, res) => {
     try {
-        const { phone, name, metadado } = req.body();
+        const { phone, name, metadado } = req.body;
         const mensagens = await updateNameLeadConexaoSdr(phone, name, metadado);
         res.status(200).json({
             status: true,
