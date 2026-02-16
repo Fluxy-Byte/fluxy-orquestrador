@@ -21,7 +21,8 @@ export async function getAnwser(
       resultSession.status === 200 ||
       (resultSession.status === 400 &&
         resultSession.data?.error?.includes("Session already exists"));
-
+      
+    console.log(urlAgente)
 
     if (sessionOk == false) {
       console.log(`\n\n💥 Erro ao criar sessão do usuario: ${JSON.stringify(resultSession)}`);
@@ -82,7 +83,7 @@ async function createSession(phone: string, metadados: Metadata) {
     const urlAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
 
     const nameAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.name ?? "fluxy"
- 
+
     const url = `${urlAgente}/apps/${nameAgente}/users/${phone}/sessions/${phone}`
     console.log(url)
     const response = await axios.post(
