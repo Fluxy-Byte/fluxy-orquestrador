@@ -14,7 +14,7 @@ export async function getAnwser(
 ): Promise<string> {
   try {
     const resultSession = await createSession(phone, metadados); // Criando sessão de usuário no ADK (ou reutilizando se já existir)
-
+    
     const urlAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
 
     const sessionOk =
@@ -78,7 +78,7 @@ export async function getAnwser(
  */
 async function createSession(phone: string, metadados: Metadata) {
   try {
-    
+    console.log(metadados)
     const urlAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
     console.log(urlAgente)
     const nameAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.name ?? "fluxy"
