@@ -19,11 +19,10 @@ export async function createOrganization() {
 
     if (!organizacao) {
         prisma.organization.upsert({
-            where: { slug: "administradores" },
+            where: { id: 1 },
             update: {},
             create: {
                 name: "Administradores",
-                slug: "administradores",
                 createdAt: new Date(),
             },
         })

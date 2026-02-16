@@ -6,6 +6,7 @@ import { createTaskVendas } from "../services/producers/task.producer.vendas"// 
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
+import { login, validarToken } from "../services/dashboard/login";
 
 const routes = express();
 
@@ -112,7 +113,6 @@ routes.post("/api/v1/vendas", async (req: any, res: any) => {
 })
 
 // Coletar historico de conversação
-
 routes.post("/api/v1/contact", async (req, res) => {
     try {
         const { phone, name, metadado, context } = req.body();
@@ -220,24 +220,43 @@ routes.get("/api/v1/contacts", async (req, res) => {
     }
 })
 
-// Coletar historico de conversação
 
-// routes.get("/api/v1/message-history", async (req, res) => {
-//     try {
-//         const mensagens = await buscarTodasAsMensagens();
-//         res.status(200).json({
-//             status: true,
-//             message: "Mensagens capturadas",
-//             data: mensagens
-//         });
-//     } catch (e: any) {
-//         res.status(500).json({
-//             status: false,
-//             message: "Erro ao coletar historico de conversação",
-//             error: JSON.stringify(e)
-//         });
-//     }
-// })
+routes.post("/api/v1/dashboard/login", async (req, res) => {
+    try {
+        const { email, password } = await req.body; 
+        const loginUser = await login(email, password);
+        res.status(loginUser.status).json({
+            status: true,
+            message: "Consulta realizada",
+            data: loginUser
+        });
+    } catch (e: any) {
+        res.status(500).json({
+            status: false,
+            message: "Erro ao coletar contatos",
+            error: JSON.stringify(e)
+        });
+    }
+})
+
+routes.get("/api/v1/dashboard/historico", async (req, res) => {
+    try {
+        const  Authorization  = await req.header("Authorization");
+
+        const loginUser = await validarToken(Authorization);
+        res.status(loginUser.status).json({
+            status: true,
+            message: "Consulta de historico realizada",
+            data: loginUser
+        });
+    } catch (e: any) {
+        res.status(500).json({
+            status: false,
+            message: "Erro ao coletar contatos",
+            error: JSON.stringify(e)
+        });
+    }
+})
 
 routes.get("/api/v1/healths", (_: any, res: any) => {
     res.json({ status: "ok" });
