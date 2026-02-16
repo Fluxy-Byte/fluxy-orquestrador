@@ -16,12 +16,12 @@ export async function getAnwser(
     const resultSession = await createSession(phone, metadados); // Criando sessão de usuário no ADK (ou reutilizando se já existir)
     console.log(resultSession)
     const urlAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
-
+    const nameAgente = (await waba(metadados.phone_number_id, metadados.display_phone_number)).waba?.agent.name ?? "fluxy"
     const sessionOk =
       resultSession.status === 200 ||
       (resultSession.status === 400 &&
         resultSession.data?.error?.includes("Session already exists"));
-      
+
     console.log(urlAgente)
 
     if (sessionOk == false) {
@@ -32,7 +32,7 @@ export async function getAnwser(
     const response = await axios.post(
       `${urlAgente}/run`,
       {
-        appName: "fluxy",
+        appName: nameAgente,
         userId: phone,
         sessionId: phone,
         newMessage: {
