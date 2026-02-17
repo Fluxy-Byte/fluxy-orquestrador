@@ -27,6 +27,9 @@ async function criarWaba(
             name: "fluxy"
         }
     });
+
+    console.log(organization)
+    console.log(agent)
     if (organization && agent) {
         return await prisma.waba.create({
             data: {
