@@ -17,19 +17,31 @@ async function criarWaba(
     phoneNumberId: string,
     displayPhoneNumber: string,
 ) {
-    return await prisma.waba.create({
-        data: {
-            phoneNumberId,
-            displayPhoneNumber,
-            organizationId: "1",
-            agentId: "1",
-        },
-        include: {
-            agent: true,
-        },
-    })
-}
+    const organization = await prisma.organization.findFirst({
+        where: {
+            name: "Administradores"
+        }
+    });
+    const agent = await prisma.agent.findFirst({
+        where: {
+            name: "fluxy"
+        }
+    });
+    if (organization && agent) {
+        return await prisma.waba.create({
+            data: {
+                phoneNumberId,
+                displayPhoneNumber,
+                organizationId: organization?.id,
+                agentId: agent.id,
+            },
+            include: {
+                agent: true,
+            },
+        })
+    }
 
+}
 
 
 export async function waba(phone_number_id: string, display_phone_number: string) {
@@ -37,7 +49,11 @@ export async function waba(phone_number_id: string, display_phone_number: string
         let waba = await verificandoExistencia(phone_number_id);
 
         if (!waba) {
-            waba = await criarWaba(phone_number_id, display_phone_number);
+            const waba = await criarWaba(phone_number_id, display_phone_number);
+            return {
+                status: true,
+                waba
+            }
         }
 
         return {

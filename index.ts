@@ -20,7 +20,7 @@ async function start() {
     await startTaskWorkerVendas()
     await connectMongo();
     await createOrganization();
-    const passwordHash = await bcrypt.hash("123456", 10)
+    const passwordHash = await bcrypt.hash("12345678", 10)
 
     await createAdminUserWithAccess({
       name: "Admin Master",
