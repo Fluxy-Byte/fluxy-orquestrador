@@ -21,8 +21,8 @@ async function criarWaba(
         data: {
             phoneNumberId,
             displayPhoneNumber,
-            organizationId: 1,
-            agentId: 1,
+            organizationId: "1",
+            agentId: "1",
         },
         include: {
             agent: true,

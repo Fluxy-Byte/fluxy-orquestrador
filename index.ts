@@ -6,7 +6,7 @@ import { startTaskWorkerReceptive } from './src/services/workes/task.worker.rece
 import { startTaskWorkerVendas } from './src/services/workes/task.worker.vendas';
 import { connectMongo } from './src/infra/dataBase/messages';
 import { createOrganization } from './src/infra/dataBase/organization'
-import { createAdminUserWithOrganization } from './src/infra/dataBase/query';
+import { createAdminUserWithAccess } from './src/infra/dataBase/query';
 import bcrypt from "bcryptjs"
 
 const PORT = process.env.PORT || 5304;
@@ -22,7 +22,7 @@ async function start() {
     await createOrganization();
     const passwordHash = await bcrypt.hash("123456", 10)
 
-    await createAdminUserWithOrganization({
+    await createAdminUserWithAccess({
       name: "Admin Master",
       email: "admin@sistema.com",
       passwordHash,

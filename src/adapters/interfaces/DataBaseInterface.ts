@@ -1,138 +1,148 @@
+import strict from "node:assert/strict"
+
 export interface User {
-    id: number
-    name: string
-    email: string
-    emailVerified: boolean
-    image?: string | null
-    role?: string | null
-    banned?: boolean | null
-    banReason?: string | null
-    banExpiresAt?: Date | null
-    createdAt: Date
-    updatedAt: Date
+  id: string
+  name?: string | null
+  email: string
+  emailVerified: boolean
+  image?: string | null
+  role: string
+  banned: boolean
+  banReason?: string | null
+  banExpires?: Date | null
+  createdAt: Date
+  updatedAt: Date
 
-    sessions?: Session[]
-    accounts?: Account[]
-    members?: Member[]
-    invitations?: Invitation[]
+  sessions?: Session[]
+  accounts?: Account[]
+  memberships?: Member[]
+  invitations?: Invitation[]
 }
-
 
 export interface Session {
-    id: number
-    expiresAt: Date
-    token: string
-    ipAddress?: string | null
-    userAgent?: string | null
-    impersonatedBy?: string | null
-    activeOrganizationId?: number | null
-    createdAt: Date
-    updatedAt: Date
+  id: string
+  userId: string
+  expiresAt: Date
+  token: string
+  ipAddress?: string | null
+  userAgent?: string | null
+  createdAt: Date
+  updatedAt: Date
 
-    userId: number
-    user?: User
+  user?: User
 }
 
-export interface Account {
-    id: number
-    accountId: string
-    providerId: string
-    accessToken?: string | null
-    refreshToken?: string | null
-    idToken?: string | null
-    accessTokenExpiresAt?: Date | null
-    refreshTokenExpiresAt?: Date | null
-    scope?: string | null
-    password?: string | null
-    createdAt: Date
-    updatedAt: Date
 
-    userId: number
-    user?: User
+export interface Account {
+  id: string
+  userId: string
+  accountId: string
+  providerId: string
+  accessToken?: string | null
+  refreshToken?: string | null
+  idToken?: string | null
+  accessTokenExpiresAt?: Date | null
+  refreshTokenExpiresAt?: Date | null
+  scope?: string | null
+  password?: string | null
+  createdAt: Date
+  updatedAt: Date
+
+  user?: User
 }
 
 export interface Verification {
-    id: number
-    identifier: string
-    value: string
-    expiresAt: Date
-    createdAt: Date
-    updatedAt: Date
+  id: string
+  identifier: string
+  value: string
+  expiresAt: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface Organization {
-    id: number
-    name: string
-    slug: string
-    logo?: string | null
-    metadata?: string | null
-    createdAt: Date
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt: Date
+  updatedAt: Date
 
-    members?: Member[]
-    invitations?: Invitation[]
-    wabas?: Waba[]
+  members?: Member[]
+  invitations?: Invitation[]
+  wabas?: Waba[]
 }
 
+type MemberRole = "member" | "admin" | "owner"
+
+
 export interface Member {
-    id: number
-    role: "ADMIN" | "MEMBER"
-    createdAt: Date
+  id: string
+  role: string
+  createdAt: Date
+  updatedAt: Date
 
-    userId: number
-    organizationId: number
+  userId: string
+  organizationId: string
 
-    user?: User
-    organization?: Organization
+  user?: User
+  organization?: Organization
 }
 
 export interface Invitation {
-    id: number
-    email: string
-    role?: string | null
-    status: "pending" | "accepted" | "expired"
-    expiresAt: Date
-    createdAt: Date
+  id: string
+  organizationId: string
+  inviterId: string
+  email: string
+  role: string
+  status: "pending" | "accepted" | "expired"
+  expiresAt: Date
+  createdAt: Date
+  updatedAt: Date
 
-    organizationId: number
-    inviterId: number
-
-    organization?: Organization
-    inviter?: User
+  organization?: Organization
+  inviter?: User
 }
+
 
 export interface Agent {
-    id: number
-    name: string
-    url: string
+  id: string
+  name: string
+  url: string
+  mensagem?: string | null
 
-    wabas?: Waba[]
+  wabas?: Waba[]
 }
+
 
 export interface Waba {
-    id: number
-    phoneNumberId: string
-    displayPhoneNumber: string
+  id: string
+  phoneNumberId: string
+  displayPhoneNumber: string
 
-    organizationId: number
-    agentId: number
+  organizationId: string
+  agentId: string
 
-    organization?: Organization
-    agent?: Agent
-    contacts?: Contact[]
+  organization?: Organization
+  agent?: Agent
+  contacts?: Contact[]
 }
+
 
 export interface Contact {
-    id: number
-    email?: string | null
-    name?: string | null
-    phone: string
-    startDateConversation: Date
-    lastDateConversation?: Date | null
-    leadGoal?: string | null
+  id: string
+  email?: string | null
+  name?: string | null
+  phone: string
+  startDateConversation: Date
+  lastDateConversation?: Date | null
+  leadGoal?: string | null
 
-    wabaId: number
-    waba?: Waba
+  wabaId: string
+  waba?: Waba
 }
+
 
 export enum Role {
     ADMIN = "ADMIN",

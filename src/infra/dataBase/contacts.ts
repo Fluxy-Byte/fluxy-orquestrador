@@ -21,7 +21,7 @@ async function updateDateLastMessage(phone: string) {
     });
 }
 
-async function criarUsuario(phone: string, id_waba: number) {
+async function criarUsuario(phone: string, id_waba: string) {
     return await prisma.contact.create({
         data: {
             phone,
@@ -30,7 +30,7 @@ async function criarUsuario(phone: string, id_waba: number) {
     })
 }
 
-export async function contato(phone: string, id_waba: number) {
+export async function contato(phone: string, id_waba: string) {
     try {
         let user = await verificandoExistencia(phone);
 
@@ -79,7 +79,7 @@ export async function contatoConexaoSdr(phone: string, name: string, metadado: M
         let user = await verificandoExistencia(phone);
 
         if (!user) {
-            let idTemp = dadosWaba?.id ?? 1
+            let idTemp = dadosWaba?.id ?? "1"
             user = await criarUsuarioConexaoSdr(phone, name, idTemp, context);
         }
 
@@ -100,7 +100,7 @@ export async function contatoConexaoSdr(phone: string, name: string, metadado: M
     }
 }
 
-async function criarUsuarioConexaoSdr(phone: string, name: string, idTemp: number, context: string) {
+async function criarUsuarioConexaoSdr(phone: string, name: string, idTemp: string, context: string) {
     console.log(phone, name, idTemp, context)
     return await prisma.contact.create({
         data: {
@@ -132,7 +132,7 @@ export async function updateNameLeadConexaoSdr(phone: string, name: string, meta
         let user = await verificandoExistencia(phone);
 
         if (!user) {
-            let idTemp = dadosWaba?.id ?? 1
+            let idTemp = dadosWaba?.id ?? "1"
             user = await criarUsuarioConexaoSdr(phone, name, idTemp, "Objetivo não foi informado");
         }
 

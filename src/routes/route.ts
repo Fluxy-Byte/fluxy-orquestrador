@@ -6,10 +6,11 @@ import { createTaskVendas } from "../services/producers/task.producer.vendas"// 
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
-import { login, validarToken } from "../services/dashboard/login";
+
+import cors from "cors";
 
 const routes = express();
-
+routes.use(cors());
 routes.use(express.json());
 
 const swaggerDocument = {
@@ -221,43 +222,6 @@ routes.get("/api/v1/contacts", async (req, res) => {
 })
 
 
-routes.post("/api/v1/dashboard/login", async (req, res) => {
-    try {
-        const { email, password } = await req.body; 
-        const loginUser = await login(email, password);
-        res.status(loginUser.status).json({
-            status: true,
-            message: "Consulta realizada",
-            data: loginUser
-        });
-    } catch (e: any) {
-        res.status(500).json({
-            status: false,
-            message: "Erro ao coletar contatos",
-            error: JSON.stringify(e)
-        });
-    }
-})
-
-routes.get("/api/v1/dashboard/historico", async (req, res) => {
-    try {
-        const  Authorization  = await req.header("Authorization");
-
-        const loginUser = await validarToken(Authorization);
-        res.status(loginUser.status).json({
-            status: true,
-            message: "Consulta de historico realizada",
-            data: loginUser
-        });
-    } catch (e: any) {
-        res.status(500).json({
-            status: false,
-            message: "Erro ao coletar contatos",
-            error: JSON.stringify(e)
-        });
-    }
-})
-
 routes.get("/api/v1/healths", (_: any, res: any) => {
     res.json({ status: "ok" });
 });
@@ -321,3 +285,6 @@ export type MessageStatus =
     | "Delivered"
     | "Read"
     | "Failed";
+
+
+// npm install --save-dev @types/cors
