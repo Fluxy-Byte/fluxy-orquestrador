@@ -10,6 +10,7 @@ export interface RDCRM {
     token_type: string
     expires_in: number
     refresh_token: string
+    expires_at: string
 }
 
 /**
@@ -37,7 +38,8 @@ async function salvarOuAtualizarToken(dados: RDCRM) {
             access_token: dados.access_token,
             expires_in: dados.expires_in,
             refresh_token: dados.refresh_token,
-            token_type: dados.token_type
+            token_type: dados.token_type,
+            expires_at: dados.expires_at
         }
     })
 }

@@ -186,4 +186,5 @@ model Rdstation {
   token_type String
   expires_in Int
   refresh_token String @unique
+  expires_at String?
 }
