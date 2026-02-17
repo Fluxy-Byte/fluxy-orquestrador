@@ -166,7 +166,7 @@ model Contact {
 
 model Agent {
   id        String   @id @default(cuid())
-  name      String
+  name      String   @unique
   url       String
   mensagem  String?
 
@@ -182,6 +182,7 @@ enum Role {
 
 model Rdstation {
   id        String  @id @default(cuid())
+  name String @unique
   access_token String
   token_type String
   expires_in Int

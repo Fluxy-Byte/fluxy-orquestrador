@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
  * (não expõe ID do banco)
  */
 export interface RDCRM {
+    name: string
     access_token: string
     token_type: string
     expires_in: number
@@ -27,7 +28,7 @@ async function coletarTokenRD() {
 async function salvarOuAtualizarToken(dados: RDCRM) {
     return prisma.rdstation.upsert({
         where: {
-            refresh_token: dados.refresh_token
+            name: dados.name
         },
         update: {
             access_token: dados.access_token,
@@ -35,6 +36,7 @@ async function salvarOuAtualizarToken(dados: RDCRM) {
             token_type: dados.token_type
         },
         create: {
+            name: dados.name,
             access_token: dados.access_token,
             expires_in: dados.expires_in,
             refresh_token: dados.refresh_token,

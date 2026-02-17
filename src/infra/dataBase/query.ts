@@ -69,8 +69,7 @@ export async function createAdminUserWithAccess(
      */
     const agent = await tx.agent.upsert({
       where: {
-        id: "1",
-        url: "https://fluxe-sdr.egnehl.easypanel.host",
+        name: "fluxy"
       },
       update: {},
       create: {
