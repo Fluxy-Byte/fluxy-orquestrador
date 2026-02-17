@@ -17,8 +17,12 @@ export interface RDCRM {
 /**
  * Busca o token salvo (singleton)
  */
-async function coletarTokenRD() {
-    return prisma.rdstation.findFirst()
+async function coletarTokenRD(name: string) {
+    return prisma.rdstation.findFirst({
+        where: {
+            name
+        }
+    })
 }
 
 /**
@@ -49,9 +53,9 @@ async function salvarOuAtualizarToken(dados: RDCRM) {
 /**
  * GET – retorna o token salvo
  */
-export async function rdStationGet() {
+export async function rdStationGet(name: string) {
     try {
-        const dados = await coletarTokenRD()
+        const dados = await coletarTokenRD(name)
 
         return {
             status: true,

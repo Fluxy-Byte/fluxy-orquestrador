@@ -6,7 +6,7 @@ import { createTaskVendas } from "../services/producers/task.producer.vendas"// 
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
-
+import { Request, Response } from "express";
 import cors from "cors";
 
 const routes = express();
@@ -150,9 +150,14 @@ routes.put("/api/v1/contact", async (req, res) => {
     }
 })
 
-routes.get("/api/v1/rdcrm", async (req, res) => {
+type Params = {
+  name: string;
+}
+
+routes.get("/api/v1/rdcrm", async (req: Request<Params>, res: Response) => {
     try {
-        const result = await rdStationGet()
+        const { name } = req.params;
+        const result = await rdStationGet(name);
 
         if (!result.status) {
             return res.status(500).json({
