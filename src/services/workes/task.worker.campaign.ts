@@ -3,6 +3,7 @@
 import { getConectionTheChannel } from '../../infra/rabbitMQ/conection';
 import { sendCampaing } from "../../adapters/microsservico/sendCampaing";
 import { handleHistoricoDeConversa } from "../tools/handleHistoricoDeConversa"
+import { coletarAgent } from '../../infra/dataBase/agent'
 
 interface Payload {
   numbers: Numbers[],
@@ -84,7 +85,11 @@ export async function startTaskWorkerCampaign() {
           display_phone_number: "553491713923",
           phone_number_id: "872884792582393"
         }
-        handleHistoricoDeConversa(contact.phone, bodyCampaign.template_name, "template", "oi", String(new Date()), 'enviado', metadados)
+        const agent = await coletarAgent(metadados.phone_number_id)
+        if (agent) {
+          handleHistoricoDeConversa(contact.phone, agent.agentId, bodyCampaign.template_name, "template", "oi", String(new Date()), 'enviado', metadados)
+        }
+
       }
 
       console.log('🛠 Executando tarefa');
