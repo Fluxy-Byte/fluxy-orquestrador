@@ -97,6 +97,8 @@ export async function criarHistoricoDeConversa(id_user: string, type_message: st
 
 
 export async function coletarHistorico(id_user: string) {
-  return await Message.find({ id_user });
+    const mensagems = await Message.find({ id_user });
+    console.log(mensagems)
+    return mensagems
 }
 

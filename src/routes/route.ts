@@ -230,6 +230,7 @@ type ParamsHistorico = {
 routes.get("/api/v1/historico", async (req: Request<ParamsHistorico>, res: Response) => {
     try {
         const { user } = req.params;
+        console.log(user)
         const result = await coletarHistorico(user);
 
         return res.status(200).json({
@@ -244,7 +245,6 @@ routes.get("/api/v1/historico", async (req: Request<ParamsHistorico>, res: Respo
         })
     }
 })
-
 
 
 routes.get("/api/v1/healths", (_: any, res: any) => {
