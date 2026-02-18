@@ -2,7 +2,7 @@ import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { createTaskCampaign } from "../services/producers/task.producer.campaign"// Criar task para campanhas
 import { createTaskVendas } from "../services/producers/task.producer.vendas"// Criar task para campanhas
-// import { buscarTodasAsMensagens } from "../config/database/entities/mensagems";
+import { coletarHistorico } from "../infra/dataBase/messages";
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
@@ -151,7 +151,7 @@ routes.put("/api/v1/contact", async (req, res) => {
 })
 
 type Params = {
-  name: string;
+    name: string;
 }
 
 routes.get("/api/v1/rdcrm", async (req: Request<Params>, res: Response) => {
@@ -206,9 +206,6 @@ routes.post("/api/v1/rdcrm", async (req, res) => {
     }
 })
 
-
-// Coletar historico de conversação
-
 routes.get("/api/v1/contacts", async (req, res) => {
     try {
         const mensagens = await getAllContacts();
@@ -225,6 +222,29 @@ routes.get("/api/v1/contacts", async (req, res) => {
         });
     }
 })
+
+type ParamsHistorico = {
+    user: string;
+}
+
+routes.get("/api/v1/historico", async (req: Request<ParamsHistorico>, res: Response) => {
+    try {
+        const { user } = req.params;
+        const result = await coletarHistorico(user);
+
+        return res.status(200).json({
+            status: true,
+            historico: result,
+        })
+    } catch (e) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            historico: [],
+        })
+    }
+})
+
 
 
 routes.get("/api/v1/healths", (_: any, res: any) => {
