@@ -16,6 +16,7 @@ export async function connectMongo() {
 ================================ */
 export interface IMessage extends Document {
     id_user: String;
+    id_agent: string;
     type_message: string;
     question_message: string;
     answer_message: string;
@@ -30,6 +31,11 @@ export interface IMessage extends Document {
 const MessageSchema = new Schema<IMessage>(
     {
         id_user: {
+            type: String,
+            required: true,
+        },
+
+        id_agent: {
             type: String,
             required: true,
         },
@@ -81,9 +87,10 @@ export const Message = mongoose.model<IMessage>(
    EXEMPLO DE USO
 ================================ */
 
-export async function criarHistoricoDeConversa(id_user: string, type_message: string, question_message: string, answer_message: string, date_recept_message: string, status_message: string) {
+export async function criarHistoricoDeConversa(id_user: string, id_agent: string, type_message: string, question_message: string, answer_message: string, date_recept_message: string, status_message: string) {
     const msg = await Message.create({
         id_user,
+        id_agent,
         type_message,
         question_message,
         answer_message,
@@ -96,8 +103,8 @@ export async function criarHistoricoDeConversa(id_user: string, type_message: st
 }
 
 
-export async function coletarHistorico(id_user: string) {
-    const mensagems = await Message.find({ id_user });
+export async function coletarHistorico(id_user: string, id_agent: string) {
+    const mensagems = await Message.find({ id_user, id_agent });
     console.log(mensagems)
     return mensagems
 }

@@ -1,6 +1,7 @@
 import { handleHistoricoDeConversa } from "../tools/handleHistoricoDeConversa"
 import { getConectionTheChannel } from '../../infra/rabbitMQ/conection';
 import type { MetaWebhook } from '../interfaces/MetaWebhook';
+import { coletarAgent } from '../../infra/dataBase/agent'
 
 export async function startTaskWorkerReceptive() {
     const channel = getConectionTheChannel()
@@ -42,11 +43,9 @@ export async function startTaskWorkerReceptive() {
                 const tipoDaMensagem = dadosDoBodyDaMensagem?.type || false; // Pode ser text ou audio
                 const timesTampMensagem = dadosDoBodyDaMensagem.timestamp; // Pode ser text ou audio
                 const numeroDoContato = dadosDoBodyDaMensagem?.from || false;
-
-                if (numeroDoContato) {
-
-                    handleHistoricoDeConversa(numeroDoContato, repostaEnviada, tipoDaMensagem, mensagemRecebida, String(new Date(Number(timesTampMensagem) * 1000)), 'enviado', dadosDoWaba)
-
+                const agent = await coletarAgent(dadosDoWaba.phone_number_id)
+                if (numeroDoContato && agent) {
+                    handleHistoricoDeConversa(numeroDoContato, agent.agentId, repostaEnviada, tipoDaMensagem, mensagemRecebida, String(new Date(Number(timesTampMensagem) * 1000)), 'enviado', dadosDoWaba)
                 }
                 console.log('\n---------💙 Processamento de alimentação da base concluído---------\n');
             }

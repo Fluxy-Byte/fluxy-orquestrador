@@ -223,25 +223,38 @@ routes.get("/api/v1/contacts", async (req, res) => {
     }
 })
 
-type ParamsHistorico = {
-    user: string;
+type HistoricoQuery = {
+    user?: string
+    agente?: string
 }
 
-routes.get("/api/v1/historico/:user", async (req: Request<ParamsHistorico>, res: Response) => {
+
+routes.get("/api/v1/historico", async (req: Request<HistoricoQuery>, res: Response) => {
     try {
-        const { user } = req.params;
-        console.log(user)
-        const result = await coletarHistorico(user);
+        const { user, agente } = req.query;
+
+        console.log(user, agente)
+
+        if (!agente || !user) {
+            return res.status(500).json({
+                status: false,
+                historico: [],
+                message: "user e agente são obrigatórios",
+            })
+        }
+        const result = await coletarHistorico(user as string, agente as string);
 
         return res.status(200).json({
             status: true,
             historico: result,
+            message: "Mensagens coletadas",
         })
     } catch (e) {
         console.error(e)
         return res.status(500).json({
             status: false,
             historico: [],
+            message: "Erro interno no servidor",
         })
     }
 })

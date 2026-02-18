@@ -5,6 +5,7 @@ import { sendCampaing } from "../../adapters/microsservico/sendCampaing";
 import { handleHistoricoDeConversa } from "../tools/handleHistoricoDeConversa"
 import { Task, LeadRegister } from "../../adapters/interfaces/BodySendToCampaing"
 import { updateContactObejtivoLead } from "../../infra/dataBase/contacts";
+import { coletarAgent } from '../../infra/dataBase/agent'
 
 export async function startTaskWorkerVendas() {
   const channel = getConectionTheChannel()
@@ -130,9 +131,12 @@ export async function startTaskWorkerVendas() {
         phone_number_id: "872884792582393"
       }
 
-      // Esse handle é só para alimentar o histórico de conversa, ele não tem relação com o resultado do envio da mensagem, ou seja, mesmo que a mensagem não seja enviada por algum motivo, a tentativa de envio vai ser registrada no histórico de conversa.
-      handleHistoricoDeConversa(bodyVendas.dados.telefone, bodyVendas.name_template, "template", "oi", String(new Date()), 'enviado', metadados)
-
+      const agent = await coletarAgent(metadados.phone_number_id)
+      if (agent) {
+        // Esse handle é só para alimentar o histórico de conversa, ele não tem relação com o resultado do envio da mensagem, ou seja, mesmo que a mensagem não seja enviada por algum motivo, a tentativa de envio vai ser registrada no histórico de conversa.
+        handleHistoricoDeConversa(bodyVendas.dados.telefone, agent.agentId, bodyVendas.name_template, "template", "oi", String(new Date()), 'enviado', metadados)
+      }
+      
       // Atualiza o objetivo do lead para o template que foi enviado, isso é útil para ter uma visão mais clara do objetivo do lead na base de contatos.
       updateContactObejtivoLead(bodyVendas.dados.telefone, bodyVendas.dados.nome, bodyVendas.dados.objetivoLead ?? 'Objetivo não foi informado');
 
