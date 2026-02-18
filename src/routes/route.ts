@@ -227,7 +227,7 @@ type ParamsHistorico = {
     user: string;
 }
 
-routes.get("/api/v1/historico", async (req: Request<ParamsHistorico>, res: Response) => {
+routes.get("/api/v1/historico/:user", async (req: Request<ParamsHistorico>, res: Response) => {
     try {
         const { user } = req.params;
         console.log(user)
