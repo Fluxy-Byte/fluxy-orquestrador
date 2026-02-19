@@ -124,22 +124,40 @@ async function updateDateLastMessageConexaoSdr(phone: string, context: string) {
     });
 }
 
+async function updateNameContact(phone: string, name: string) {
+    return await prisma.contact.update({
+        where: {
+            phone: phone
+        },
+        data: {
+            lastDateConversation: new Date(),
+            name
+        }
+    });
+}
+
 export async function updateNameLeadConexaoSdr(phone: string, name: string, metadado: Metadata) {
     try {
-        console.log("1")
         let dadosWaba = (await waba(metadado.phone_number_id, metadado.display_phone_number)).waba
 
         let user = await verificandoExistencia(phone);
 
-        if (!user) {
-            let idTemp = dadosWaba?.id ?? "1"
+        console.log(user)
+
+        if (!user && dadosWaba) {
+            let idTemp = dadosWaba.id
             user = await criarUsuarioConexaoSdr(phone, name, idTemp, "Objetivo não foi informado");
+        }
+
+        if (user) {
+            user = await updateNameContact(phone, name);
         }
 
         return {
             status: true,
             user
         };
+
 
     } catch (e) {
         console.error('Erro ao gerar usuário:', e);
