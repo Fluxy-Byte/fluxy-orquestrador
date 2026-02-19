@@ -92,9 +92,11 @@ async function tratarMensagensDeAudio(dados: Message, numeroDoContato: string, M
             }
         }
 
+        console.log(result)
+
         return {
             agent: mensagem,
-            client: result ?? "Mensagem do usuario não encontrada"
+            client: result
         }
     } catch (e: any) {
         console.log("❌ Erro ao coletar mensagem de audio: " + e);
