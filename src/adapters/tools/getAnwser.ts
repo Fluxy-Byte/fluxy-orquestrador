@@ -66,7 +66,7 @@ export async function getAnwser(
     const textPart = resposta?.content.parts.find(
       (p): p is { text: string } => "text" in p
     );
-
+    
     return textPart?.text ?? MENSAGM_DEFAULT;
 
   } catch (error) {

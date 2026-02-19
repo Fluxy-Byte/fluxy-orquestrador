@@ -62,3 +62,9 @@ export interface Status {
     type: string
   }
 }
+
+
+export interface Answer {
+    agent: string,
+    client: string
+}

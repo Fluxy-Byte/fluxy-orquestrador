@@ -1,4 +1,4 @@
-import { MetaWebhook, Metadata } from '../interfaces/MetaWebhook';
+import { MetaWebhook, Metadata, Answer } from '../interfaces/MetaWebhook';
 import { createTaskReceptive } from "../producers/task.producer.receptive";
 import { getAudio } from "../../adapters/microsservico/getAudio";
 import type { Message } from "../interfaces/MetaWebhook";
@@ -10,9 +10,14 @@ interface ReseultGetAudio {
     data: string
 }
 
+
 export async function HandleReceptiveWebhook(task: MetaWebhook) {
     try {
-        let mensagemAnswer = process.env.MENSAGM_DEFAULT ?? "😔 Ops! Tivemos um pequeno imprevisto no momento.\nPedimos que tente novamente mais tarde.\n\n📞 Se for urgente, fale com a gente pelo número: +55 11 3164-7487\n\nA Gamefic agradece seu contato! 💙😊"
+        const mensagemDefault = process.env.MENSAGM_DEFAULT ?? "😔 Ops! Tivemos um pequeno imprevisto no momento.\nPedimos que tente novamente mais tarde.\n\n📞 Se for urgente, fale com a gente pelo número: +55 11 3164-7487\n\nA Gamefic agradece seu contato! 💙😊";
+        let mensagemAnswer: Answer = {
+            agent: mensagemDefault,
+            client: "Mensagem do usuario não foi indentificada"
+        };
 
         const taskMessage = task.entry[0];
         const dadosDaMesagen = taskMessage.changes[0];
@@ -27,7 +32,7 @@ export async function HandleReceptiveWebhook(task: MetaWebhook) {
             const idMensagem = dadosDoBodyDaMensagem?.id || false; // Id da mensagem para usar na resposta
             const numeroDoContato = dadosDoBodyDaMensagem?.from || false; // Numero do contato que esta enviando mensgem
             const idWaba = taskMessage.id; // Id do waba para saber do numero e agente
-            console.log(`Mensagem recebida do numero: ${metadados.display_phone_number} 📲`)
+            console.log(`Mensagem recebida do agente: ${metadados.display_phone_number} 📲`);
 
             if (idMensagem && numeroDoContato) {
 
@@ -35,7 +40,7 @@ export async function HandleReceptiveWebhook(task: MetaWebhook) {
                     mensagemAnswer = await tratarMensagensDeAudio( // Converte o audio e retorna mensagem gerada pelo agente
                         dadosDoBodyDaMensagem,
                         numeroDoContato,
-                        mensagemAnswer,
+                        mensagemDefault,
                         metadados
                     );
 
@@ -43,7 +48,7 @@ export async function HandleReceptiveWebhook(task: MetaWebhook) {
                     mensagemAnswer = await tratarMensagensDeTexto( // Gerada mensagem pelo agente
                         dadosDoBodyDaMensagem,
                         numeroDoContato,
-                        mensagemAnswer,
+                        mensagemDefault,
                         metadados
                     );
                 }
@@ -51,7 +56,7 @@ export async function HandleReceptiveWebhook(task: MetaWebhook) {
                 await sendBodyToMenssage( // Envia para growth como mensagem normal
                     idMensagem,
                     numeroDoContato,
-                    mensagemAnswer,
+                    mensagemAnswer.agent,
                     metadados.phone_number_id
                 )
 
@@ -76,23 +81,27 @@ async function tratarMensagensDeAudio(dados: Message, numeroDoContato: string, M
         const urlAudio = dados.audio?.url;
         const idAudio = dados.audio?.id;
         let mensagem = MENSAGM_DEFAULT;
+        let result = "Não foi possivel trancrever o audio";
 
         if (urlAudio && idAudio) {
-
             const resultgGetAudio: ReseultGetAudio = await getAudio(idAudio, MENSAGM_DEFAULT);
 
             if (resultgGetAudio.status && resultgGetAudio.data) {
-                let result = resultgGetAudio.data
+                result = resultgGetAudio.data
                 mensagem = await getAnwser(result, numeroDoContato, MENSAGM_DEFAULT, metadados);
             }
+        }
 
-            return mensagem
-        } else {
-            return mensagem
+        return {
+            agent: mensagem,
+            client: result ?? "Mensagem do usuario não encontrada"
         }
     } catch (e: any) {
         console.log("❌ Erro ao coletar mensagem de audio: " + e);
-        return MENSAGM_DEFAULT
+        return {
+            agent: MENSAGM_DEFAULT,
+            client: "Mensagem do usuario não encontrada"
+        }
     }
 }
 
@@ -105,10 +114,16 @@ async function tratarMensagensDeTexto(dados: Message, numeroDoContato: string, M
             responseToUser = await getAnwser(mensagemUser, numeroDoContato, MENSAGM_DEFAULT, metadados);
         }
 
-        return responseToUser;
+        return {
+            agent: responseToUser,
+            client: dados.text?.body ?? "Mensagem do usuario não encontrada"
+        }
     } catch (e: any) {
         console.log("❌ Erro ao coletar mensagem de texto: " + e);
-        return MENSAGM_DEFAULT;
+        return {
+            agent: MENSAGM_DEFAULT,
+            client: dados.text?.body ?? "Mensagem do usuario não encontrada"
+        };
     }
 }
 

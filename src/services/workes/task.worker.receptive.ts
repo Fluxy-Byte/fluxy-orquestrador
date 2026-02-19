@@ -1,6 +1,6 @@
 import { handleHistoricoDeConversa } from "../tools/handleHistoricoDeConversa"
 import { getConectionTheChannel } from '../../infra/rabbitMQ/conection';
-import type { MetaWebhook } from '../interfaces/MetaWebhook';
+import type { MetaWebhook, Answer } from '../interfaces/MetaWebhook';
 import { coletarAgent } from '../../infra/dataBase/agent'
 
 export async function startTaskWorkerReceptive() {
@@ -22,9 +22,9 @@ export async function startTaskWorkerReceptive() {
     channel.consume(queue, async (msg: any) => {
         if (!msg) return
         const body = JSON.parse(msg.content.toString())
-   
+
         const task: MetaWebhook = body.bodyTask
-        const repostaEnviada: string = body.resposta
+        const repostaEnviada: Answer = body.resposta
 
         try {
             console.log('\n---------💙 Processando de alimentação da base começando---------\n');
@@ -39,13 +39,12 @@ export async function startTaskWorkerReceptive() {
                 //const profileContact = dadosDaMesagen.value.contacts?.[0]; // Nome no perfil
                 const dadosDoBodyDaMensagem = bodyDaMenssage?.[0];
 
-                const mensagemRecebida = dadosDoBodyDaMensagem?.text?.body || "Não indentificada";
                 const tipoDaMensagem = dadosDoBodyDaMensagem?.type || false; // Pode ser text ou audio
                 const timesTampMensagem = dadosDoBodyDaMensagem.timestamp; // Pode ser text ou audio
                 const numeroDoContato = dadosDoBodyDaMensagem?.from || false;
                 const agent = await coletarAgent(dadosDoWaba.phone_number_id)
                 if (numeroDoContato && agent) {
-                    handleHistoricoDeConversa(numeroDoContato, agent.agentId, repostaEnviada, tipoDaMensagem, mensagemRecebida, String(new Date(Number(timesTampMensagem) * 1000)), 'enviado', dadosDoWaba)
+                    handleHistoricoDeConversa(numeroDoContato, agent.agentId, repostaEnviada.agent, tipoDaMensagem, repostaEnviada.client, String(new Date(Number(timesTampMensagem) * 1000)), 'enviado', dadosDoWaba)
                 }
                 console.log('\n---------💙 Processamento de alimentação da base concluído---------\n');
             }
