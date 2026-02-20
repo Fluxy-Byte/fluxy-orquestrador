@@ -18,7 +18,7 @@ export async function getAnwser(
 
     const waba = await getWabaFilterWithPhoneNumber(metadados.phone_number_id)
     const urlAgente = waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
-    const nameAgente = waba?.agent.url ?? "fluxy"
+    const nameAgente = waba?.agent.name ?? "fluxy"
 
     const sessionOk =
       resultSession.status === 200 ||
