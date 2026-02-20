@@ -19,6 +19,9 @@ export async function getAnwser(
     const waba = await getWabaFilterWithPhoneNumber(metadados.phone_number_id)
     const urlAgente = waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
     const nameAgente = waba?.agent.name ?? "fluxy"
+    
+    console.log(urlAgente)
+    console.log(nameAgente)
 
     const sessionOk =
       resultSession.status === 200 ||
@@ -84,6 +87,9 @@ async function createSession(phone: string, metadados: Metadata) {
     const waba = await getWabaFilterWithPhoneNumber(metadados.phone_number_id)
     const urlAgente = waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
     const nameAgente = waba?.agent.name ?? "fluxy"
+
+    console.log(urlAgente)
+    console.log(nameAgente)
 
     const url = `${urlAgente}/apps/${nameAgente}/users/${phone}/sessions/${phone}`
     console.log(url)
