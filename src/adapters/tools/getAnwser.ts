@@ -83,7 +83,7 @@ async function createSession(phone: string, metadados: Metadata) {
   try {
     const waba = await getWabaFilterWithPhoneNumber(metadados.phone_number_id)
     const urlAgente = waba?.agent.url ?? "https://fluxe-sdr.egnehl.easypanel.host"
-    const nameAgente = waba?.agent.url ?? "fluxy"
+    const nameAgente = waba?.agent.name ?? "fluxy"
 
     const url = `${urlAgente}/apps/${nameAgente}/users/${phone}/sessions/${phone}`
     console.log(url)
