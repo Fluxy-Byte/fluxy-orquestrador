@@ -37,3 +37,62 @@ export interface LeadRegister {
     problema?: string,
     etapa?: string,
 }
+
+
+export type WhatsAppMessageList = WhatsAppMessagePayload[];
+
+export interface WhatsAppMessagePayload {
+    chatid: string;
+    content: MessageContent;
+    convertOptions: string;
+    edited: string;
+    fromMe: boolean;
+    id: string;
+    isGroup: boolean;
+    messageTimestamp: number;
+    messageType: MessageType;
+    messageid: string;
+    owner: string;
+    quoted: string;
+    reaction: string;
+    readChatAttempted: boolean;
+    sender: string;
+    senderName: string;
+    source: "web" | "mobile" | "api";
+    status: MessageStatus;
+    text: string;
+    track_id: string;
+    track_source: string;
+}
+
+export interface MessageContent {
+    text: string;
+    contextInfo: MessageContextInfo;
+}
+
+export interface MessageContextInfo {
+    quotedMessageId?: string;
+    mentionedJid?: string[];
+    participant?: string;
+}
+
+export type MessageType =
+    | "ExtendedTextMessage"
+    | "TextMessage"
+    | "ImageMessage"
+    | "VideoMessage"
+    | "AudioMessage"
+    | "DocumentMessage"
+    | "StickerMessage"
+    | "ContactMessage"
+    | "LocationMessage"
+    | "ButtonsMessage"
+    | "ListMessage";
+
+export type MessageStatus =
+    | "Pending"
+    | "Sent"
+    | "Delivered"
+    | "Read"
+    | "Failed";
+

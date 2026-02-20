@@ -1,13 +1,38 @@
 import { prisma } from '../../lib/prisma';
 import { Metadata } from '../../services/interfaces/MetaWebhook';
-import { waba } from './waba';
+import { getWabaFilterWithPhoneNumber, getWabaFilterWithId } from './waba';
 
-async function verificandoExistencia(phone: string) {
+async function getUserFilterWithPhone(phone: string) {
+    return await prisma.contact.findFirst({
+        where: { phone },
+        include: {
+            contactWabas: {
+                include: { waba: true },
+            },
+        },
+    });
+}
+
+async function getUserFilterWithPhoneAndWabaId(
+    phone: string,
+    wabaId: number
+) {
     return await prisma.contact.findFirst({
         where: {
-            phone
-        }
-    })
+            phone,
+            contactWabas: {
+                some: {
+                    wabaId,
+                },
+            },
+        },
+        include: {
+            contactWabas: {
+                where: { wabaId },
+                include: { waba: true },
+            },
+        },
+    });
 }
 
 async function updateDateLastMessage(phone: string) {
@@ -21,43 +46,85 @@ async function updateDateLastMessage(phone: string) {
     });
 }
 
-async function criarUsuario(phone: string, id_waba: string) {
+async function createUser(phone: string, wabaId: number) {
     return await prisma.contact.create({
         data: {
             phone,
-            wabaId: id_waba
-        }
-    })
+            contactWabas: {
+                create: {
+                    waba: {
+                        connect: { id: wabaId },
+                    },
+                },
+            },
+        },
+        include: {
+            contactWabas: {
+                include: { waba: true },
+            },
+        },
+    });
 }
 
-export async function contato(phone: string, id_waba: string) {
+export async function contato(phone: string, id_waba: number) {
     try {
-        let user = await verificandoExistencia(phone);
+        const dadosWaba = await getWabaFilterWithId(id_waba);
+
+        if (!dadosWaba) {
+            return {
+                status: false,
+                user: null,
+                message: "Não existe Waba com id_waba: " + id_waba
+            };
+        }
+
+        let user = await getUserFilterWithPhone(phone);
 
         if (!user) {
-            user = await criarUsuario(phone, id_waba);
+            user = await createUser(phone, id_waba);
+        } else {
+            const jaTemRelacionamento = user.contactWabas.some(
+                cw => cw.wabaId === id_waba
+            );
+
+            if (!jaTemRelacionamento) {
+                await createContactWabaRelation(user.id, id_waba);
+            }
         }
 
         await updateDateLastMessage(phone);
 
+        const contatoAtualizado = await getUserFilterWithPhoneAndWabaId(
+            phone,
+            id_waba
+        );
+
         return {
             status: true,
-            user
+            user: contatoAtualizado,
+            message: "Sucesso ao encontrar usuario"
         };
 
     } catch (e) {
-        console.error('Erro ao gerar usuário:', e);
+        console.error("Erro ao gerar usuário:", e);
 
         return {
             status: false,
-            user: null
+            user: null,
+            message: "Erro interno ao gerar usuario"
         };
     }
 }
 
 
 export async function getAllContacts() {
-    return await prisma.contact.findMany();
+    return await prisma.contact.findMany({
+        include: {
+            contactWabas: {
+                include: { waba: true },
+            },
+        },
+    });
 }
 
 export async function updateContactObejtivoLead(phone: string, nome: string, objetivoLead: string) {
@@ -72,99 +139,209 @@ export async function updateContactObejtivoLead(phone: string, nome: string, obj
     })
 }
 
-export async function contatoConexaoSdr(phone: string, name: string, metadado: Metadata, context: string) {
+export async function contatoConexaoSdr(
+    phone: string,
+    name: string,
+    phone_number_id: string,
+    objetivoLead: string
+) {
     try {
-        let dadosWaba = (await waba(metadado.phone_number_id, metadado.display_phone_number)).waba
+        const dadosWaba = await getWabaFilterWithPhoneNumber(phone_number_id);
 
-        let user = await verificandoExistencia(phone);
-
-        if (!user) {
-            let idTemp = dadosWaba?.id ?? "1"
-            user = await criarUsuarioConexaoSdr(phone, name, idTemp, context);
+        if (!dadosWaba) {
+            return {
+                status: false,
+                user: null,
+                message: "Não existe Waba com phone_number_id: " + phone_number_id
+            };
         }
 
-        updateDateLastMessageConexaoSdr(phone, context);
+        let user = await getUserFilterWithPhone(phone);
+
+        if (!user) {
+            user = await criarUsuarioConexaoSdr(
+                phone,
+                name,
+                dadosWaba.id,
+                objetivoLead
+            );
+        } else {
+            const jaTemRelacionamento = user.contactWabas.some(
+                cw => cw.wabaId === dadosWaba.id
+            );
+
+            if (!jaTemRelacionamento) {
+                await createContactWabaRelation(user.id, dadosWaba.id);
+            }
+        }
+
+        await updateDateLastMessageConexaoSdr(phone, objetivoLead);
+
+        const contatoAtualizado = await getUserFilterWithPhoneAndWabaId(
+            phone,
+            dadosWaba.id
+        );
 
         return {
             status: true,
-            user
+            user: contatoAtualizado,
+            message: "Sucesso ao encontrar usuario"
         };
 
     } catch (e) {
-        console.error('Erro ao gerar usuário:', e);
+        console.error("Erro ao gerar usuário:", e);
 
         return {
             status: false,
-            user: null
+            user: null,
+            message: "Erro interno ao gerar usuario"
         };
     }
 }
-
-async function criarUsuarioConexaoSdr(phone: string, name: string, idTemp: string, context: string) {
-    console.log(phone, name, idTemp, context)
+async function criarUsuarioConexaoSdr(
+    phone: string,
+    name: string,
+    wabaId: number,
+    leadGoal: string
+) {
     return await prisma.contact.create({
         data: {
             phone,
             name,
-            wabaId: idTemp,
-            leadGoal: context
-        }
-    })
+            leadGoal,
+
+            contactWabas: {
+                create: {
+                    waba: {
+                        connect: { id: wabaId },
+                    },
+                },
+            },
+        },
+        include: {
+            contactWabas: {
+                include: {
+                    waba: true,
+                },
+            },
+        },
+    });
 }
 
-async function updateDateLastMessageConexaoSdr(phone: string, context: string) {
+async function updateDateLastMessageConexaoSdr(phone: string, leadGoal: string) {
     await prisma.contact.update({
         where: {
             phone: phone
         },
         data: {
             lastDateConversation: new Date(),
-            leadGoal: context
+            leadGoal
         }
     });
 }
 
-async function updateNameContact(phone: string, name: string) {
-    return await prisma.contact.update({
+async function updateNameContact(
+    phone: string,
+    name: string,
+    wabaId: number
+) {
+    await prisma.contact.updateMany({
         where: {
-            phone: phone
+            phone,
+            contactWabas: {
+                some: { wabaId },
+            },
         },
         data: {
+            name,
             lastDateConversation: new Date(),
-            name
-        }
+        },
+    });
+
+    return await prisma.contact.findFirst({
+        where: {
+            phone,
+            contactWabas: {
+                some: { wabaId },
+            },
+        },
+        include: {
+            contactWabas: {
+                include: { waba: true },
+            },
+        },
     });
 }
 
-export async function updateNameLeadConexaoSdr(phone: string, name: string, metadado: Metadata) {
+export async function updateNameLeadConexaoSdr(
+    phone: string,
+    name: string,
+    phone_number_id: string
+) {
     try {
-        let dadosWaba = (await waba(metadado.phone_number_id, metadado.display_phone_number)).waba
+        const dadosWaba = await getWabaFilterWithPhoneNumber(phone_number_id);
 
-        let user = await verificandoExistencia(phone);
-
-        console.log(user)
-
-        if (!user && dadosWaba) {
-            let idTemp = dadosWaba.id
-            user = await criarUsuarioConexaoSdr(phone, name, idTemp, "Objetivo não foi informado");
+        if (!dadosWaba) {
+            return {
+                status: false,
+                user: null,
+                message: "Não existe Waba com phone_number_id: " + phone_number_id
+            };
         }
 
-        if (user) {
-            user = await updateNameContact(phone, name);
+        let user = await getUserFilterWithPhone(phone);
+
+        if (!user) {
+            user = await criarUsuarioConexaoSdr(
+                phone,
+                name,
+                dadosWaba.id,
+                "Objetivo não foi informado"
+            );
+        } else {
+            const jaTemRelacionamento = user.contactWabas.some(
+                cw => cw.wabaId === dadosWaba.id
+            );
+
+            if (!jaTemRelacionamento) {
+                await createContactWabaRelation(user.id, dadosWaba.id);
+            }
         }
+
+        const contatoAtualizado = await updateNameContact(
+            phone,
+            name,
+            dadosWaba.id
+        );
 
         return {
             status: true,
-            user
+            user: contatoAtualizado,
+            message: "Sucesso ao encontrar usuario"
         };
 
-
     } catch (e) {
-        console.error('Erro ao gerar usuário:', e);
+        console.error("Erro ao gerar usuário:", e);
 
         return {
             status: false,
-            user: null
+            user: null,
+            message: "Erro interno ao gerar usuario"
         };
     }
+}
+
+async function createContactWabaRelation(
+    contactId: number,
+    wabaId: number
+) {
+    return await prisma.contactWaba.create({
+        data: {
+            contactId,
+            wabaId
+        },
+        include: {
+            waba: true
+        }
+    });
 }

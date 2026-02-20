@@ -1,75 +1,122 @@
 import { prisma } from '../../lib/prisma'
 
-
-async function verificandoExistencia(phoneNumberId: string) {
-    return await prisma.waba.findFirst({
-        where: {
+export async function createWaba(phoneNumberId: string, displayPhoneNumber: string, organizationId: string, agentId: number) {
+    return await prisma.waba.create({
+        data: {
             phoneNumberId,
+            displayPhoneNumber,
+            organizationId,
+            agentId,
         },
         include: {
             agent: true,
+            contactWabas: {
+                include: {
+                    contact: true
+                }
+            }
         },
     })
 }
 
-
-async function criarWaba(
-    phoneNumberId: string,
-    displayPhoneNumber: string,
-) {
-    const organization = await prisma.organization.findFirst({
-        where: {
-            name: "Administradores"
+export async function getAllWaba() {
+    return await prisma.waba.findMany({
+        select: {
+            organizationId: true,
+            displayPhoneNumber: true,
+            id: true,
+            phoneNumberId: true,
+            agent: true
         }
-    });
-    const agent = await prisma.agent.findFirst({
+    })
+}
+
+export async function getWabaFilterOrganization(organization_id: string) {
+    return await prisma.waba.findMany({
         where: {
-            name: "fluxy"
+            organizationId: organization_id
+        },
+        select: {
+            organizationId: true,
+            displayPhoneNumber: true,
+            id: true,
+            phoneNumberId: true,
+            agent: true
         }
-    });
+    })
+}
 
-    console.log(organization)
-    console.log(agent)
-    if (organization && agent) {
-        return await prisma.waba.create({
-            data: {
-                phoneNumberId,
-                displayPhoneNumber,
-                organizationId: organization?.id,
-                agentId: agent.id,
-            },
-            include: {
-                agent: true,
-            },
-        })
-    }
+export async function getWabaFilterWithPhoneNumber(phone_number_id: string) {
+    return await prisma.waba.findFirst({
+        where: {
+            phoneNumberId: phone_number_id,
+        },
+        include: {
+            agent: true,
+            contactWabas: {
+                include: {
+                    contact: true
+                }
+            }
+        },
+    })
+}
 
+export async function getWabaFilterWithId(id: number) {
+    return await prisma.waba.findFirst({
+        where: {
+            id
+        },
+        include: {
+            agent: true,
+            contactWabas: {
+                include: {
+                    contact: true
+                }
+            }
+        },
+    })
+}
+
+interface UpdateWaba {
+    agentId?: number,
+    displayPhoneNumber?: string,
+    organizationId?: string,
+    phoneNumberId?: string
+}
+
+export async function updateWaba(phone_number_id: string, dados: UpdateWaba) {
+    return await prisma.waba.update({
+        where: {
+            phoneNumberId: phone_number_id
+        },
+        data: dados
+    })
 }
 
 
-export async function waba(phone_number_id: string, display_phone_number: string) {
-    try {
-        let waba = await verificandoExistencia(phone_number_id);
-
-        if (!waba) {
-            const waba = await criarWaba(phone_number_id, display_phone_number);
-            return {
-                status: true,
-                waba
+export async function updateNumberContactsWaba(phone_number_id: string) {
+    return await prisma.waba.update({
+        where: {
+            phoneNumberId: phone_number_id
+        },
+        data: {
+            qtdContatos: {
+                increment: 1
             }
         }
+    })
+}
 
-        return {
-            status: true,
-            waba
-        };
-
-    } catch (e) {
-        console.error('Erro ao gerar waba:', e);
-
-        return {
-            status: false,
-            waba: undefined
-        };
-    }
+export async function updateNumberContactsConvertationWaba(phone_number_id: string) {
+    return await prisma.waba.update({
+        where: {
+            phoneNumberId: phone_number_id
+        },
+        data: {
+            qtdConversao: {
+                increment: 1
+            }
+        }
+    })
 }

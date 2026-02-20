@@ -7,7 +7,10 @@ import { HandleReceptiveWebhook } from "../services/handleMessages/handleRecepti
 import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
 import { Request, Response } from "express";
+import { createWaba, getAllWaba, getWabaFilterOrganization, getWabaFilterWithPhoneNumber, updateWaba } from "@/infra/dataBase/waba";
+import { createAgent, getAgentFilterWithId, getAllAgent, updateAgente } from "@/infra/dataBase/agent";
 import cors from "cors";
+import { error } from "node:console";
 
 const routes = express();
 routes.use(cors());
@@ -16,9 +19,436 @@ routes.use(express.json());
 const swaggerDocument = {
     openapi: "3.0.0",
     info: {
-        title: "API Teste",
-        version: "1.0.0"
-    }
+        title: "API WhatsApp / CRM",
+        description: "Documentação da API de campanhas, vendas, contatos, WABA, agentes e histórico",
+        version: "1.0.0",
+    },
+    servers: [
+        {
+            url: "https://fluxe-orquestrador.egnehl.easypanel.host",
+            description: "Servidor local",
+        },
+    ],
+    tags: [
+        { name: "Webhook" },
+        { name: "Campanhas" },
+        { name: "Vendas" },
+        { name: "Contatos" },
+        { name: "RD Station" },
+        { name: "WABA" },
+        { name: "Agentes" },
+        { name: "Histórico" },
+        { name: "Health" },
+    ],
+    paths: {
+        "/api/v1/receptive/webhook": {
+            get: {
+                tags: ["Webhook"],
+                summary: "Validação do webhook da Meta",
+                parameters: [
+                    {
+                        name: "hub.mode",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                    {
+                        name: "hub.challenge",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                    {
+                        name: "hub.verify_token",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                ],
+                responses: {
+                    200: { description: "Webhook validado com sucesso" },
+                    403: { description: "Token inválido" },
+                },
+            },
+            post: {
+                tags: ["Webhook"],
+                summary: "Recebe mensagens e status do WhatsApp",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: { type: "object" },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Mensagem recebida" },
+                },
+            },
+        },
+
+        "/api/v1/campaign": {
+            post: {
+                tags: ["Campanhas"],
+                summary: "Criar campanha de disparo",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["numbers", "template_name", "type"],
+                                properties: {
+                                    numbers: {
+                                        type: "array",
+                                        items: { type: "string" },
+                                    },
+                                    template_name: { type: "string" },
+                                    type: { type: "string" },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Campanha inserida na fila" },
+                    401: { description: "Dados inválidos" },
+                },
+            },
+        },
+
+        "/api/v1/vendas": {
+            post: {
+                tags: ["Vendas"],
+                summary: "Criar disparo de venda",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["name_template", "dados"],
+                                properties: {
+                                    name_template: { type: "string" },
+                                    dados: { type: "object" },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Venda inserida na fila" },
+                    401: { description: "Dados inválidos" },
+                },
+            },
+        },
+
+        "/api/v1/contacts": {
+            get: {
+                tags: ["Contatos"],
+                summary: "Listar todos os contatos",
+                responses: {
+                    200: { description: "Lista de contatos" },
+                },
+            },
+        },
+
+        "/api/v1/contact": {
+            post: {
+                tags: ["Contatos"],
+                summary: "Criar contato ou atualiza dados do contato",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["phone", "name"],
+                                properties: {
+                                    phone: { type: "string" },
+                                    name: { type: "string" },
+                                    phone_number_id: { type: "string" },
+                                    objetivoLead: { type: "string" },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Contato criado" },
+                },
+            },
+            put: {
+                tags: ["Contatos"],
+                summary: "Atualizar somente o campo nome do contato",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["phone", "name"],
+                                properties: {
+                                    phone: { type: "string" },
+                                    name: { type: "string" },
+                                    phone_number_id: { type: "string" },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Contato atualizado" },
+                },
+            },
+        },
+
+        "/api/v1/rdcrm": {
+            get: {
+                tags: ["RD Station"],
+                summary: "Buscar lead no RD Station",
+                parameters: [
+                    {
+                        name: "name",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                ],
+                responses: {
+                    200: { description: "Lead encontrado" },
+                },
+            },
+            post: {
+                tags: ["RD Station"],
+                summary: "Criar lead no RD Station",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: { type: "object" },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Lead criado" },
+                },
+            },
+        },
+
+
+        "/api/v1/list-wabas": {
+            get: {
+                tags: ["WABA"],
+                summary: "Listar nomes dos wabas",
+                parameters: [{
+                    name: "organization_id",
+                    in: "query",
+                    schema: { type: "string" }
+                }],
+                responses: {
+                    200: { description: "Lista de WABAs" },
+                },
+            }
+        },
+
+        "/api/v1/waba": {
+            get: {
+                tags: ["WABA"],
+                summary: "Listar WABAs",
+                parameters: [
+                    {
+                        name: "phone_number_id",
+                        in: "query",
+                        schema: { type: "string" },
+                    },
+                ],
+                responses: {
+                    200: { description: "Lista de WABAs" },
+                },
+            },
+            post: {
+                tags: ["WABA"],
+                summary: "Criar WABA",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: [
+                                    "phone_number_id",
+                                    "display_phone_number",
+                                    "idOrganization",
+                                    "idAgente",
+                                ],
+                                properties: {
+                                    phone_number_id: { type: "string" },
+                                    display_phone_number: { type: "string" },
+                                    idOrganization: { type: "string" },
+                                    idAgente: { type: "number" },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "WABA criado" },
+                },
+            },
+            put: {
+                tags: ["WABA"],
+                summary: "Atualizar WABA",
+                parameters: [
+                    {
+                        name: "phone_number_id",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" }
+                    }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                properties: {
+                                    agentId: { type: "number" },
+                                    displayPhoneNumber: { type: "string" },
+                                    organizationId: { type: "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: "WABA atualizado com sucesso" },
+                    400: { description: "Dados inválidos" }
+                }
+            }
+        },
+
+        "/api/v1/agent": {
+            get: {
+                tags: ["Agentes"],
+                summary: "Listar agentes",
+                parameters: [
+                    {
+                        name: "id_agent",
+                        in: "query",
+                        schema: { type: "string" },
+                    },
+                ],
+                responses: {
+                    200: { description: "Lista de agentes" },
+                },
+            },
+            post: {
+                tags: ["Agentes"],
+                summary: "Criar agentes",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: [
+                                    "name",
+                                    "url"
+                                ],
+                                properties: {
+                                    name: { type: "string" },
+                                    url: { type: "string" }
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: { description: "Agente criado" },
+                },
+            },
+            put: {
+                tags: ["Agentes"],
+                summary: "Atualizar agente",
+                parameters: [
+                    {
+                        name: "id_agent",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" }
+                    }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["name", "url"],
+                                properties: {
+                                    name: { type: "string" },
+                                    url: { type: "string" },
+                                    mensagem: { type: "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: "Agente atualizado com sucesso" },
+                    400: { description: "Dados inválidos" }
+                }
+            }
+        },
+
+        "/api/v1/historico": {
+            get: {
+                tags: ["Histórico"],
+                summary: "Buscar histórico de mensagens",
+                parameters: [
+                    {
+                        name: "user",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                    {
+                        name: "agente",
+                        in: "query",
+                        required: true,
+                        schema: { type: "string" },
+                    },
+                ],
+                responses: {
+                    200: { description: "Histórico retornado" },
+                },
+            },
+        },
+
+        "/api/v1/healths": {
+            get: {
+                tags: ["Health"],
+                summary: "Health check da API",
+                responses: {
+                    200: {
+                        description: "API funcionando",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        status: { type: "string", example: "ok" },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 routes.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -113,42 +543,62 @@ routes.post("/api/v1/vendas", async (req: any, res: any) => {
     }
 })
 
-routes.post("/api/v1/contact", async (req, res) => {
+routes.get("/api/v1/contacts", async (req, res) => {
     try {
-        console.log("Chegou")
-        const { phone, name, metadado, context } = req.body;
-        const mensagens = await contatoConexaoSdr(phone, name, metadado, context);
+        const users = await getAllContacts();
         res.status(200).json({
             status: true,
-            message: "Contato criado na base",
-            data: mensagens
+            message: "Contatos na base",
+            data: users
         });
     } catch (e: any) {
+        console.log(JSON.stringify(e))
         res.status(500).json({
             status: false,
-            message: "Erro ao criar contato",
-            error: JSON.stringify(e)
+            message: "Erro interno no servidor",
+            data: []
+        });
+    }
+})
+
+routes.post("/api/v1/contact", async (req, res) => {
+    try {
+        const { phone, name, phone_number_id, objetivoLead } = req.body;
+        const user = await contatoConexaoSdr(phone, name, phone_number_id, objetivoLead);
+        res.status(200).json({
+            status: true,
+            message: user.message,
+            data: user.user
+        });
+    } catch (e: any) {
+        console.log(JSON.stringify(e))
+        res.status(500).json({
+            status: false,
+            message: "Erro interno no servidor",
+            data: null
         });
     }
 })
 
 routes.put("/api/v1/contact", async (req, res) => {
     try {
-        const { phone, name, metadado } = req.body;
-        const mensagens = await updateNameLeadConexaoSdr(phone, name, metadado);
+        const { phone, name, phone_number_id } = req.body;
+        const user = await updateNameLeadConexaoSdr(phone, name, phone_number_id);
         res.status(200).json({
             status: true,
-            message: "Contatos atualizado na base",
-            data: mensagens
+            message: user.message,
+            data: user.user
         });
     } catch (e: any) {
+        console.log(JSON.stringify(e))
         res.status(500).json({
             status: false,
-            message: "Erro ao atualizar contato",
-            error: JSON.stringify(e)
+            message: "Erro interno no servidor",
+            data: null
         });
     }
 })
+
 
 type Params = {
     name: string;
@@ -179,7 +629,6 @@ routes.get("/api/v1/rdcrm", async (req: Request<Params>, res: Response) => {
     }
 })
 
-
 routes.post("/api/v1/rdcrm", async (req, res) => {
     try {
         const body = req.body
@@ -206,28 +655,256 @@ routes.post("/api/v1/rdcrm", async (req, res) => {
     }
 })
 
-routes.get("/api/v1/contacts", async (req, res) => {
+
+routes.post("/api/v1/waba", async (req, res) => {
     try {
-        const mensagens = await getAllContacts();
-        res.status(200).json({
-            status: true,
-            message: "Contatos na base",
-            data: mensagens
-        });
+        const { phone_number_id, display_phone_number, idOrganization, idAgente } = req.body;
+
+        if (!phone_number_id ||
+            !display_phone_number ||
+            !idOrganization ||
+            !idAgente ||
+            typeof phone_number_id != "string" ||
+            typeof display_phone_number != "string" ||
+            typeof idOrganization != "string" ||
+            typeof idAgente != "number"
+        ) {
+            return res.status(400).json({
+                status: false,
+                waba: null,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: phone_number_id = string, display_phone_number = string, idOrganization = string, idAgente = number"
+            })
+        }
+
+        const result = await createWaba(phone_number_id, display_phone_number, idOrganization, idAgente);
+
+        return res.status(result ? 200 : 400).json({
+            status: result ? true : false,
+            waba: result,
+            mensagem: ""
+        })
     } catch (e: any) {
-        res.status(500).json({
+        console.error(e)
+        return res.status(500).json({
             status: false,
-            message: "Erro ao coletar contatos",
-            error: JSON.stringify(e)
-        });
+            waba: null,
+            mensagem: "Erro interno no servidor"
+        })
     }
 })
+
+type WabaQuery = {
+    phone_number_id?: string
+}
+
+routes.get("/api/v1/waba", async (req: Request<WabaQuery>, res) => {
+    try {
+        const { phone_number_id } = req.query;
+
+        if (phone_number_id && typeof phone_number_id == "string") {
+            const waba = await getWabaFilterWithPhoneNumber(phone_number_id);
+            return res.status(200).json({
+                status: true,
+                waba,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: phone_number_id = string"
+            })
+        } else {
+            const waba = await getAllWaba();
+            return res.status(200).json({
+                status: true,
+                waba,
+                mensagem: ""
+            })
+        }
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            waba: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
+type WabaQueryWhitOrganization = {
+    organization_id?: string
+}
+
+routes.get("/api/v1/list-wabas", async (req: Request<WabaQueryWhitOrganization>, res) => {
+    try {
+        const { organization_id } = req.query;
+
+        if (organization_id && typeof organization_id == "string") {
+
+            const wabas = await getWabaFilterOrganization(organization_id);
+            return res.status(200).json({
+                status: true,
+                wabas,
+                mensagem: ""
+            })
+        } else {
+            const waba = await getAllWaba();
+            return res.status(200).json({
+                status: true,
+                waba,
+                mensagem: ""
+            })
+        }
+
+
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            waba: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
+
+routes.put("/api/v1/waba", async (req: Request<WabaQuery>, res) => {
+    try {
+        const { agentId, displayPhoneNumber, organizationId } = req.body;
+        const { phone_number_id } = req.query;
+
+        if (!phone_number_id ||
+            typeof phone_number_id != "string"
+        ) {
+            return res.status(400).json({
+                status: false,
+                agent: null,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: phone_number_id = string, agentId = number, displayPhoneNumber? = string e organizationId = string"
+            })
+        }
+
+        const result = await updateWaba(phone_number_id, { agentId, displayPhoneNumber, organizationId, phoneNumberId: phone_number_id });
+
+        return res.status(result ? 200 : 400).json({
+            status: result ? true : false,
+            agent: result,
+            mensagem: ""
+        })
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            agent: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
+
+type AgentQuery = {
+    id_agent?: string
+}
+
+routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
+    try {
+        const { id_agent } = req.query;
+
+        if (id_agent && typeof id_agent == "string") {
+            const agent = await getAgentFilterWithId(Number(id_agent));
+            return res.status(200).json({
+                status: true,
+                agent,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: id_agent = string"
+            })
+        } else {
+            const agent = await getAllAgent();
+            return res.status(200).json({
+                status: true,
+                agent,
+                mensagem: ""
+            })
+        }
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            agent: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
+
+
+routes.post("/api/v1/agent", async (req, res) => {
+    try {
+        const { name, url } = req.body;
+
+        if (!name ||
+            !url ||
+            typeof name != "string" ||
+            typeof url != "string"
+        ) {
+            return res.status(400).json({
+                status: false,
+                agent: null,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: name = string, url = string"
+            })
+        }
+
+        const result = await createAgent(name, url);
+
+        return res.status(result ? 200 : 400).json({
+            status: result ? true : false,
+            agent: result,
+            mensagem: ""
+        })
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            agent: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
+
+
+routes.put("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
+    try {
+        const { name, url, mensagem } = req.body;
+        const { id_agent } = req.query;
+
+        if (!name ||
+            !url ||
+            typeof name != "string" ||
+            typeof url != "string"
+        ) {
+            return res.status(400).json({
+                status: false,
+                agent: null,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: name = string, url = string, mensagem? = string e id_agent como query"
+            })
+        }
+
+        const result = await updateAgente(Number(id_agent), { name, url, mensagem });
+
+        return res.status(result ? 200 : 400).json({
+            status: result ? true : false,
+            agent: result,
+            mensagem: ""
+        })
+    } catch (e: any) {
+        console.error(e)
+        return res.status(500).json({
+            status: false,
+            agent: null,
+            mensagem: "Erro interno no servidor"
+        })
+    }
+})
+
 
 type HistoricoQuery = {
     user?: string
     agente?: string
 }
-
 
 routes.get("/api/v1/historico", async (req: Request<HistoricoQuery>, res: Response) => {
     try {
@@ -242,7 +919,7 @@ routes.get("/api/v1/historico", async (req: Request<HistoricoQuery>, res: Respon
                 message: "user e agente são obrigatórios",
             })
         }
-        const result = await coletarHistorico(user as string, agente as string);
+        const result = await coletarHistorico(Number(user), Number(agente));
 
         return res.status(200).json({
             status: true,
@@ -265,64 +942,5 @@ routes.get("/api/v1/healths", (_: any, res: any) => {
 });
 
 export default routes;
-
-
-export type WhatsAppMessageList = WhatsAppMessagePayload[];
-
-export interface WhatsAppMessagePayload {
-    chatid: string;
-    content: MessageContent;
-    convertOptions: string;
-    edited: string;
-    fromMe: boolean;
-    id: string;
-    isGroup: boolean;
-    messageTimestamp: number;
-    messageType: MessageType;
-    messageid: string;
-    owner: string;
-    quoted: string;
-    reaction: string;
-    readChatAttempted: boolean;
-    sender: string;
-    senderName: string;
-    source: "web" | "mobile" | "api";
-    status: MessageStatus;
-    text: string;
-    track_id: string;
-    track_source: string;
-}
-
-export interface MessageContent {
-    text: string;
-    contextInfo: MessageContextInfo;
-}
-
-export interface MessageContextInfo {
-    quotedMessageId?: string;
-    mentionedJid?: string[];
-    participant?: string;
-}
-
-export type MessageType =
-    | "ExtendedTextMessage"
-    | "TextMessage"
-    | "ImageMessage"
-    | "VideoMessage"
-    | "AudioMessage"
-    | "DocumentMessage"
-    | "StickerMessage"
-    | "ContactMessage"
-    | "LocationMessage"
-    | "ButtonsMessage"
-    | "ListMessage";
-
-export type MessageStatus =
-    | "Pending"
-    | "Sent"
-    | "Delivered"
-    | "Read"
-    | "Failed";
-
 
 // npm install --save-dev @types/cors

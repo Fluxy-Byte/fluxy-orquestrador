@@ -5,7 +5,6 @@ import { startTaskWorkerCampaign } from './src/services/workes/task.worker.campa
 import { startTaskWorkerReceptive } from './src/services/workes/task.worker.receptive';
 import { startTaskWorkerVendas } from './src/services/workes/task.worker.vendas';
 import { connectMongo } from './src/infra/dataBase/messages';
-import { createOrganization } from './src/infra/dataBase/organization'
 import { createAdminUserWithAccess } from './src/infra/dataBase/query';
 import bcrypt from "bcryptjs"
 
@@ -19,7 +18,6 @@ async function start() {
     await startTaskWorkerReceptive();
     await startTaskWorkerVendas()
     await connectMongo();
-    await createOrganization();
     const passwordHash = await bcrypt.hash("12345678", 10)
 
     await createAdminUserWithAccess({
@@ -31,8 +29,8 @@ async function start() {
     console.log(e)
   } finally {
     routes.listen(PORT, () => {
-      console.log(`🚀 API rodando na porta http://localhost:${PORT}`);
-      console.log(`📚 Swagger em http://localhost:${PORT}/api/v1/docs`);
+      console.log(`🚀 API rodando na porta http://localhost:${PORT} ou https://fluxe-orquestrador.egnehl.easypanel.host`);
+      console.log(`📚 Swagger em http://localhost:${PORT}/api/v1/docs ou https://fluxe-orquestrador.egnehl.easypanel.host/api/v1/docs`);
     });
   }
 }
