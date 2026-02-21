@@ -4,7 +4,7 @@ import { createTaskCampaign } from "../services/producers/task.producer.campaign
 import { createTaskVendas } from "../services/producers/task.producer.vendas"// Criar task para campanhas
 import { coletarHistorico } from "../infra/dataBase/messages";
 import { HandleReceptiveWebhook } from "../services/handleMessages/handleReceptiveWebhook";
-import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
+import { getAllContacts, getUserFilterWithWabaId, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../infra/dataBase/contacts";
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
 import { Request, Response } from "express";
 import { createWaba, getAllWaba, getWabaFilterOrganization, getWabaFilterWithPhoneNumber, updateWaba } from "@/infra/dataBase/waba";
@@ -147,6 +147,11 @@ const swaggerDocument = {
             get: {
                 tags: ["Contatos"],
                 summary: "Listar todos os contatos",
+                parameters: [{
+                    name: "waba_id",
+                    in: "query",
+                    schema: { type: "string" }
+                }],
                 responses: {
                     200: { description: "Lista de contatos" },
                 },
@@ -551,20 +556,36 @@ routes.post("/api/v1/vendas", async (req: any, res: any) => {
     }
 })
 
-routes.get("/api/v1/contacts", async (req, res) => {
+type ParamsContact = {
+    waba_id: string
+}
+
+routes.get("/api/v1/contacts", async (req: Request<ParamsContact>, res: Response) => {
     try {
-        const users = await getAllContacts();
-        res.status(200).json({
-            status: true,
-            message: "Contatos na base",
-            data: users
-        });
+        const { waba_id } = req.query;
+
+        if (waba_id && typeof waba_id == "string") {
+
+            const wabas = await getUserFilterWithWabaId(Number(waba_id));
+            return res.status(200).json({
+                status: true,
+                wabas,
+                contatos: "Contatos na base"
+            })
+        } else {
+            const users = await getAllContacts();
+            res.status(200).json({
+                status: true,
+                message: "Contatos na base",
+                contatos: users
+            });
+        }
     } catch (e: any) {
         console.log(JSON.stringify(e))
         res.status(500).json({
             status: false,
             message: "Erro interno no servidor",
-            data: []
+            contatos: []
         });
     }
 })
@@ -576,14 +597,14 @@ routes.post("/api/v1/contact", async (req, res) => {
         res.status(200).json({
             status: true,
             message: user.message,
-            data: user.user
+            contato: user.user
         });
     } catch (e: any) {
         console.log(JSON.stringify(e))
         res.status(500).json({
             status: false,
             message: "Erro interno no servidor",
-            data: null
+            contato: null
         });
     }
 })
@@ -595,14 +616,14 @@ routes.put("/api/v1/contact", async (req, res) => {
         res.status(200).json({
             status: true,
             message: user.message,
-            data: user.user
+            contato: user.user
         });
     } catch (e: any) {
         console.log(JSON.stringify(e))
         res.status(500).json({
             status: false,
             message: "Erro interno no servidor",
-            data: null
+            contato: null
         });
     }
 })

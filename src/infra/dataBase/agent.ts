@@ -60,7 +60,7 @@ interface UpdateAgent {
 export async function updateAgente(id: number, dados: UpdateAgent) {
     return await prisma.agent.update({
         where: {
-            id
+            id: id
         },
         data: dados
     })

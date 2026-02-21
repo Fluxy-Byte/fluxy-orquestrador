@@ -35,6 +35,21 @@ async function getUserFilterWithPhoneAndWabaId(
     });
 }
 
+export async function getUserFilterWithWabaId(
+    wabaId: number
+) {
+    return await prisma.contact.findFirst({
+        where: {
+            contactWabas: {
+                some: {
+                    wabaId,
+                },
+            },
+        }
+    });
+}
+
+
 async function updateDateLastMessage(phone: string) {
     await prisma.contact.update({
         where: {
@@ -126,6 +141,7 @@ export async function getAllContacts() {
         },
     });
 }
+
 
 export async function updateContactObejtivoLead(phone: string, nome: string, objetivoLead: string) {
     return await prisma.contact.update({

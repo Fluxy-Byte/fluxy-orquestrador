@@ -86,10 +86,9 @@ interface UpdateWaba {
 }
 
 export async function updateWaba(phone_number_id: string, dados: UpdateWaba) {
-    console.log(dados)
     return await prisma.waba.update({
         where: {
-            phoneNumberId: phone_number_id
+            phoneNumberId: phone_number_id,
         },
         data: dados
     })
