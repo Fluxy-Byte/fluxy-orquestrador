@@ -38,7 +38,7 @@ async function getUserFilterWithPhoneAndWabaId(
 export async function getUserFilterWithWabaId(
     wabaId: number
 ) {
-    return await prisma.contact.findFirst({
+    return await prisma.contact.findMany({
         where: {
             contactWabas: {
                 some: {
