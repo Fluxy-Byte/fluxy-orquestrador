@@ -781,7 +781,7 @@ routes.put("/api/v1/waba", async (req: Request<WabaQuery>, res) => {
         ) {
             return res.status(400).json({
                 status: false,
-                agent: null,
+                waba: null,
                 mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: phone_number_id = string, agentId = number, displayPhoneNumber? = string e organizationId = string"
             })
         }
@@ -790,14 +790,14 @@ routes.put("/api/v1/waba", async (req: Request<WabaQuery>, res) => {
 
         return res.status(result ? 200 : 400).json({
             status: result ? true : false,
-            agent: result,
+            waba: result,
             mensagem: ""
         })
     } catch (e: any) {
         console.error(e)
         return res.status(500).json({
             status: false,
-            agent: null,
+            waba: null,
             mensagem: "Erro interno no servidor"
         })
     }
