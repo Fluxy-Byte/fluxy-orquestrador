@@ -79,13 +79,14 @@ export async function getWabaFilterWithId(id: number) {
 }
 
 interface UpdateWaba {
-    agentId?: number,
+    agentId: number,
     displayPhoneNumber?: string,
     organizationId?: string,
     phoneNumberId?: string
 }
 
 export async function updateWaba(phone_number_id: string, dados: UpdateWaba) {
+    console.log(dados)
     return await prisma.waba.update({
         where: {
             phoneNumberId: phone_number_id
