@@ -851,7 +851,6 @@ routes.post("/api/v1/agent", async (req, res) => {
     try {
         const { name, url, organizationId } = req.body;
 
-
         if (!name ||
             !url ||
             !organizationId ||
@@ -866,7 +865,7 @@ routes.post("/api/v1/agent", async (req, res) => {
             })
         }
 
-        const result = await createAgent(name, url, organizationId ?? "");
+        const result = await createAgent(name, url, organizationId);
 
         return res.status(result ? 200 : 400).json({
             status: result ? true : false,
