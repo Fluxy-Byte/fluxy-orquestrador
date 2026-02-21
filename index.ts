@@ -5,8 +5,6 @@ import { startTaskWorkerCampaign } from './src/services/workes/task.worker.campa
 import { startTaskWorkerReceptive } from './src/services/workes/task.worker.receptive';
 import { startTaskWorkerVendas } from './src/services/workes/task.worker.vendas';
 import { connectMongo } from './src/infra/dataBase/messages';
-import { createAdminUserWithAccess } from './src/infra/dataBase/query';
-import bcrypt from "bcryptjs"
 
 const PORT = process.env.PORT || 5304;
 
@@ -18,13 +16,7 @@ async function start() {
     await startTaskWorkerReceptive();
     await startTaskWorkerVendas()
     await connectMongo();
-    const passwordHash = await bcrypt.hash("12345678", 10)
 
-    await createAdminUserWithAccess({
-      name: "Admin Master",
-      email: "admin@sistema.com",
-      passwordHash,
-    })
   } catch (e) {
     console.log(e)
   } finally {

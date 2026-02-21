@@ -28,10 +28,10 @@ enum Role {
 /* ---------- AGENT ---------- */
 model Agent {
   id       Int     @id @default(autoincrement())
-  name     String  @unique
+  name     String
   url      String
   mensagem String?
-  organizationId      String?
+  organizationId   String?
 
   wabas    Waba[]
 
