@@ -818,21 +818,21 @@ routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
             return res.status(200).json({
                 status: true,
                 agent,
-                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: id_agent = string"
+                mensagem: "Consulta concluida usando id_agent como filtro"
             })
         } else if (organization_id && typeof organization_id == "string") {
             const agent = await getAgentFilterWithOrganizationId(organization_id);
             return res.status(200).json({
                 status: true,
                 agent,
-                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: organization_id = string"
+                mensagem: "Consulta concluida usando organization_id como filtro"
             })
         } else {
             const agent = await getAllAgent();
             return res.status(200).json({
                 status: true,
                 agent,
-                mensagem: ""
+                mensagem: "Consulta completa concluida"
             })
         }
     } catch (e: any) {
