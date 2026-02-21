@@ -850,7 +850,7 @@ routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
 routes.post("/api/v1/agent", async (req, res) => {
     try {
         const { name, url, organizationId } = req.body;
-
+        console.log(name, url, organizationId)
         if (!name ||
             !url ||
             !organizationId ||
