@@ -20,7 +20,7 @@ export async function getAgentFilterWithId(id: number) {
 }
 
 export async function getAgentFilterWithOrganizationId(organizationId: string) {
-    return await prisma.agent.findFirst({
+    return await prisma.agent.findMany({
         where: {
             organizationId
         },
