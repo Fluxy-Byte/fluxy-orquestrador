@@ -566,11 +566,11 @@ routes.get("/api/v1/contacts", async (req: Request<ParamsContact>, res: Response
 
         if (waba_id && typeof waba_id == "string") {
 
-            const wabas = await getUserFilterWithWabaId(Number(waba_id));
+            const contatos = await getUserFilterWithWabaId(Number(waba_id));
             return res.status(200).json({
                 status: true,
-                wabas,
-                contatos: "Contatos na base"
+                contatos,
+                message: "Contatos na base"
             })
         } else {
             const users = await getAllContacts();
