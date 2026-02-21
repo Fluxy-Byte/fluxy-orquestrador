@@ -19,10 +19,12 @@ export async function getAgentFilterWithId(id: number) {
     })
 }
 
-export async function createAgent(name: string, url: string) {
+export async function createAgent(name: string, url: string, organizationId: string) {
     const resultSeachName = await prisma.agent.findFirst({
         where: {
-            name
+            name,
+            url,
+            organizationId
         }
     })
 
@@ -39,8 +41,8 @@ export async function createAgent(name: string, url: string) {
 interface UpdateAgent {
     name?: string,
     url?: string,
-    mensagem?: string
-
+    mensagem?: string,
+    organizationId?: string
 }
 
 export async function updateAgente(id: number, dados: UpdateAgent) {

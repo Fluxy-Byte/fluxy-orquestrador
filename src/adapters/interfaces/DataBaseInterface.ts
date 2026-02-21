@@ -17,7 +17,7 @@ export interface Waba {
   agentId: number
 
   agent?: Agent
-  contactWabas?: ContactWaba[] // ✅ RELAÇÃO N:N
+  contactWabas?: ContactWaba[]
 }
 
 export interface Contact {
@@ -29,7 +29,7 @@ export interface Contact {
   lastDateConversation?: Date | null
   leadGoal?: string | null
 
-  contactWabas?: ContactWaba[] // ✅ RELAÇÃO N:N
+  contactWabas?: ContactWaba[]
 }
 
 

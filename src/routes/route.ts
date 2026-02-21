@@ -355,11 +355,13 @@ const swaggerDocument = {
                                 type: "object",
                                 required: [
                                     "name",
-                                    "url"
+                                    "url",
+                                    "organizationId"
                                 ],
                                 properties: {
                                     name: { type: "string" },
-                                    url: { type: "string" }
+                                    url: { type: "string" },
+                                    organizationId: { type: "string" }
                                 },
                             },
                         },
@@ -386,11 +388,12 @@ const swaggerDocument = {
                         "application/json": {
                             schema: {
                                 type: "object",
-                                required: ["name", "url"],
+                                required: ["name", "url", "mensagem", "organizationId"],
                                 properties: {
                                     name: { type: "string" },
                                     url: { type: "string" },
-                                    mensagem: { type: "string" }
+                                    mensagem: { type: "string" },
+                                    organizationId: { type: "string" }
                                 }
                             }
                         }
@@ -833,7 +836,7 @@ routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
 
 routes.post("/api/v1/agent", async (req, res) => {
     try {
-        const { name, url } = req.body;
+        const { name, url, organizationId } = req.body;
 
         if (!name ||
             !url ||
@@ -847,7 +850,7 @@ routes.post("/api/v1/agent", async (req, res) => {
             })
         }
 
-        const result = await createAgent(name, url);
+        const result = await createAgent(name, url, organizationId ?? "");
 
         return res.status(result ? 200 : 400).json({
             status: result ? true : false,
@@ -868,7 +871,7 @@ routes.post("/api/v1/agent", async (req, res) => {
 
 routes.put("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
     try {
-        const { name, url, mensagem } = req.body;
+        const { name, url, mensagem, organizationId } = req.body;
         const { id_agent } = req.query;
 
         if (!name ||
@@ -879,7 +882,8 @@ routes.put("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
             return res.status(400).json({
                 status: false,
                 agent: null,
-                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: name = string, url = string, mensagem? = string e id_agent como query"
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: name = string, url = string, mensagem? = string e id_agent como query",
+                organizationId: organizationId ?? ""
             })
         }
 

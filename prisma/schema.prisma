@@ -31,6 +31,7 @@ model Agent {
   name     String  @unique
   url      String
   mensagem String?
+  organizationId      String?
 
   wabas    Waba[]
 
