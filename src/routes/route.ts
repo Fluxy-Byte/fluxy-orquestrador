@@ -8,7 +8,7 @@ import { getAllContacts, contatoConexaoSdr, updateNameLeadConexaoSdr } from "../
 import { rdStationGet, rdStationPost } from "../infra/dataBase/rdstation";
 import { Request, Response } from "express";
 import { createWaba, getAllWaba, getWabaFilterOrganization, getWabaFilterWithPhoneNumber, updateWaba } from "@/infra/dataBase/waba";
-import { createAgent, getAgentFilterWithId, getAllAgent, updateAgente } from "@/infra/dataBase/agent";
+import { createAgent, getAgentFilterWithId, getAllAgent, updateAgente, getAgentFilterWithOrganizationId } from "@/infra/dataBase/agent";
 import cors from "cors";
 import { error } from "node:console";
 
@@ -339,6 +339,11 @@ const swaggerDocument = {
                         in: "query",
                         schema: { type: "string" },
                     },
+                    {
+                        name: "organization_id",
+                        in: "query",
+                        schema: { type: "string" },
+                    }
                 ],
                 responses: {
                     200: { description: "Lista de agentes" },
@@ -801,14 +806,22 @@ routes.put("/api/v1/waba", async (req: Request<WabaQuery>, res) => {
 
 type AgentQuery = {
     id_agent?: string
+    organization_id?: string
 }
 
 routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
     try {
-        const { id_agent } = req.query;
+        const { id_agent, organization_id } = req.query;
 
         if (id_agent && typeof id_agent == "string") {
             const agent = await getAgentFilterWithId(Number(id_agent));
+            return res.status(200).json({
+                status: true,
+                agent,
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: id_agent = string"
+            })
+        } else if (organization_id && typeof organization_id == "string") {
+            const agent = await getAgentFilterWithOrganizationId(organization_id);
             return res.status(200).json({
                 status: true,
                 agent,

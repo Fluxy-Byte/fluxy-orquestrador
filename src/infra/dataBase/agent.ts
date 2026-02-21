@@ -19,6 +19,17 @@ export async function getAgentFilterWithId(id: number) {
     })
 }
 
+export async function getAgentFilterWithOrganizationId(organizationId: string) {
+    return await prisma.agent.findFirst({
+        where: {
+            organizationId
+        },
+        include: {
+            wabas: true,
+        },
+    })
+}
+
 export async function createAgent(name: string, url: string, organizationId: string) {
     const resultSeachName = await prisma.agent.findFirst({
         where: {
