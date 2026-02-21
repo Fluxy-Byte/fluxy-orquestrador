@@ -44,7 +44,8 @@ export async function createAgent(name: string, url: string, organizationId: str
     return await prisma.agent.create({
         data: {
             name,
-            url
+            url,
+            organizationId
         }
     })
 }
