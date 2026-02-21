@@ -851,8 +851,11 @@ routes.post("/api/v1/agent", async (req, res) => {
     try {
         const { name, url, organizationId } = req.body;
 
+
         if (!name ||
             !url ||
+            !organizationId ||
+            typeof organizationId != "string" ||
             typeof name != "string" ||
             typeof url != "string"
         ) {
