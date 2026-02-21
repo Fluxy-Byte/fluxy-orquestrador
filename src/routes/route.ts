@@ -825,7 +825,7 @@ routes.get("/api/v1/agent", async (req: Request<AgentQuery>, res) => {
             return res.status(200).json({
                 status: true,
                 agent,
-                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: id_agent = string"
+                mensagem: "Necessario revisar os dados necessário no seu body da requisição. Campos esperados e tipos do valor: organization_id = string"
             })
         } else {
             const agent = await getAllAgent();
